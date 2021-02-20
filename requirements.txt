@@ -12,6 +12,7 @@ Django==3.1.6
 django-allauth==0.44.0
 django-templated-mail==1.1.1
 djangorestframework==3.12.2
+djangorestframework-jwt==1.11.0
 djangorestframework-simplejwt==4.6.0
 djoser==2.1.0
 google==3.0.0
