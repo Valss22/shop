@@ -97,11 +97,15 @@ class RefreshTokenView(GenericAPIView):
             refresh = self.serializer_class.get_token(User.objects.get(id=valid_data['user_id']))
             access = self.serializer_class.get_token(User.objects.get(id=valid_data['user_id'])).access_token
 
+            UserRefreshToken.objects.filter(user=User.objects.get
+            (id=valid_data['user_id'])).update(refresh=str(refresh))
+
             response = Response()
             response.set_cookie(key='refresh', value=refresh, httponly=True)
             response.data = {
                 'access': str(access)
             }
+
             return response
         else:
             return Response({'message': 'Auth failed'})
