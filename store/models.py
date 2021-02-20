@@ -18,6 +18,11 @@ class UserProfile(models.Model):
         return f'id({self.id}) {self.user}'
 
 
+class UserRefreshToken(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='refresh', null=True)
+    refresh = models.TextField(null=True)
+
+
 class Category(models.Model):
     name = models.CharField(max_length=50, verbose_name='Название категории')
     slug = models.SlugField(unique=True)

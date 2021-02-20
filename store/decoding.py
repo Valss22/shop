@@ -1,7 +1,6 @@
 import base64
 import json
 
-
 def parse_id_token(token: str) -> dict:
     parts = token.split(".")
     if len(parts) != 3:
@@ -11,4 +10,13 @@ def parse_id_token(token: str) -> dict:
     padded = payload + '=' * (4 - len(payload) % 4)
     decoded = base64.b64decode(padded)
     return json.loads(decoded)
+
+
+a = 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImZkYjQwZTJmOTM1M2M1OGFkZDY0OGI2MzYzNGU1YmJmNjNlNGY1MDIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJhY2NvdW50cy5nb29nbGUuY29tIiwiYXpwIjoiMjk4OTc4OTgyMzItNzI3ZHN2ZWJxc2ZhN2txcmRkbDBoaGJiZmFsZzB2anAuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiIyOTg5Nzg5ODIzMi03Mjdkc3ZlYnFzZmE3a3FyZGRsMGhoYmJmYWxnMHZqcC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjEwMjI2ODM3MTUxOTkwMjM4MzU3NSIsImVtYWlsIjoiZGVnZXIuYmVnZXJyckBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXRfaGFzaCI6ImhsNnVnQzRyZDZ0U3ZyZG10U05YNWciLCJuYW1lIjoi0JTQtdCz0LXRgCDQkdC10LPQtdGAIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS8tX3E5bEFVbnotZE0vQUFBQUFBQUFBQUkvQUFBQUFBQUFBQUEvQU1adXVjbnRjdDFCMG9JTHBVTWZ0T3lUa1NJRFBremU2US9zOTYtYy9waG90by5qcGciLCJnaXZlbl9uYW1lIjoi0JTQtdCz0LXRgCIsImZhbWlseV9uYW1lIjoi0JHQtdCz0LXRgCIsImxvY2FsZSI6ImVuIiwiaWF0IjoxNjEzODM5MzQ4LCJleHAiOjE2MTM4NDI5NDgsImp0aSI6IjViNDQwMzFhZDRlZWNlNDNkOGZiYjdmZWU5YTA0Yzc1ZDIzNDgzZDMifQ.NJpubVzGWRG_NuH8KNRWK9_tSvZIdhyi2hSjBjS1X1Dy5_c8A7vXLolHyUXIodP3DmeHDIRyjYbFpEBsQ2tt3OJzLK7Ikav0_ExSZuwdhK2mGTtzUNx73mxI3qvTLhWLVwovWlamjVEnybH-Rmm7wQ-p1B28BagZmOVaQ1tJnANEJH5V8fXK-ABw-XEMES7-mV2Tf-BWJwKnBBCDFqiM-5A3d2PtYsXSzRt6BORZtWsRyBo8q9jy4hOvY7quNTIYUYn94uuZ4UOf6eV6C3asyGRcoy6pF1HQL1E-cV_aZIC6thqJcGcTvPbKTH4vryI0WCVjF9o4PuMCy1iK_G2Zhw'
+
+
+#print(parse_id_token(a)['name'])
+
+
+
 
