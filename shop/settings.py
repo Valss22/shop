@@ -106,17 +106,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# JWT_AUTH = {
-#     # how long the original token is valid for
-#     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=2),
-#
-#     # allow refreshing of tokens
-#     'JWT_ALLOW_REFRESH': True,
-#
-#     # this is the maximum time AFTER the token was issued that
-#     # it can be refreshed.  exprired tokens can't be refreshed.
-#     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
-# }
+JWT_AUTH = {
+    # how long the original token is valid for
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=20),
+
+    # allow refreshing of tokens
+    'JWT_ALLOW_REFRESH': True,
+
+    # this is the maximum time AFTER the token was issued that
+    # it can be refreshed.  exprired tokens can't be refreshed.
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(seconds=60),
+}
 
 
 # Internationalization
