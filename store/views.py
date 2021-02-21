@@ -103,7 +103,10 @@ class RefreshTokenView(GenericAPIView):
             response = Response()
             response.set_cookie(key='refresh', value=refresh, httponly=True)
             response.data = {
-                'access': str(access)
+                'access': str(access),
+                'email': User.objects.get(id=refresh['user_id']).email,
+                'name': User.objects.get(id=refresh['user_id']).name,
+                'picture': UserProfile.objects.get(user=User.objects.get(id=refresh['user_id'])).picture,
             }
 
             return response
