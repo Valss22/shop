@@ -45,23 +45,22 @@ class GoogleView(GenericAPIView):
             # serializer.is_valid(raise_exception=True)
             # data = serializer.validated_data
 
-            refresh = self.serializer_class.get_token(User.objects.get
-                                                      (username=parse_id_token(token['id_token'])['name']))
-
-            access = self.serializer_class.get_token(
-                User.objects.get(username=parse_id_token(token['id_token'])['name'])).access_token
-
-            response = Response()
-            response.set_cookie(key='refresh', value=str(refresh), httponly=True)
-            response.data = {
-                'access': str(access),
-                'email': parse_id_token(token['id_token'])['email'],
-                'name': parse_id_token(token['id_token'])['name'],
-                'picture': parse_id_token(token['id_token'])['picture'],
-            }
-
             try:
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
+                refresh = self.serializer_class.get_token(User.objects.get
+                                                          (username=parse_id_token(token['id_token'])['name']))
+
+                access = self.serializer_class.get_token(
+                    User.objects.get(username=parse_id_token(token['id_token'])['name'])).access_token
+
+                response = Response()
+                response.set_cookie(key='refresh', value=str(refresh), httponly=True)
+                response.data = {
+                    'access': str(access),
+                    'email': parse_id_token(token['id_token'])['email'],
+                    'name': parse_id_token(token['id_token'])['name'],
+                    'picture': parse_id_token(token['id_token'])['picture'],
+                }
 
                 UserRefreshToken.objects.filter(user=User.objects.get
                 (username=parse_id_token(token['id_token'])['name'])).update(refresh=str(refresh))
@@ -72,6 +71,21 @@ class GoogleView(GenericAPIView):
                 User.objects.create_user(parse_id_token(token['id_token'])['name'],
                                          parse_id_token(token['id_token'])['email'],
                                          '123')
+
+                refresh = self.serializer_class.get_token(User.objects.get
+                                                          (username=parse_id_token(token['id_token'])['name']))
+
+                access = self.serializer_class.get_token(
+                    User.objects.get(username=parse_id_token(token['id_token'])['name'])).access_token
+
+                response = Response()
+                response.set_cookie(key='refresh', value=str(refresh), httponly=True)
+                response.data = {
+                    'access': str(access),
+                    'email': parse_id_token(token['id_token'])['email'],
+                    'name': parse_id_token(token['id_token'])['name'],
+                    'picture': parse_id_token(token['id_token'])['picture'],
+                }
 
                 UserRefreshToken.objects.filter(user=User.objects.get
                 (username=parse_id_token(token['id_token'])['name'])).update(refresh=str(refresh))
