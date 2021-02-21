@@ -55,5 +55,5 @@ sqlparse==0.4.1
 Unidecode==1.2.0
 uritemplate==3.0.1
 urllib3==1.26.3
-whitenoise==3.2.0
+whitenoise==3.2
 
