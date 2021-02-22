@@ -21,7 +21,7 @@ REFRESH_SECRET_KEY = 'dk9Xe7_csnJuafV^4A9aZwBM=n*E3%QeWEh9LtJ*z*!g-@uBZ@'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -148,11 +148,5 @@ DATABASES['default'].update(db_from_env)
 
 django_heroku.settings(locals())
 
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000',
-]
-
-CORS_ORIGIN_REGEX_WHITELIST = [
-    'http://localhost:3000',
-]
