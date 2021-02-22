@@ -30,7 +30,8 @@ class GoogleView(APIView):
 
         try:
             idinfo = id_token.verify_oauth2_token(token['id_token'],
-                                                  requests.Request(), config('googleClientId'))
+                                                  requests.Request(),
+                                                  '29897898232-727dsvebqsfa7kqrddl0hhbbfalg0vjp.apps.googleusercontent.com')
 
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
