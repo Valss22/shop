@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'store',
     'rest_framework',
     'djoser',
+    'corsheaders',
 ]
 
 # REST_FRAMEWORK = {
@@ -52,6 +53,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'shop.urls'
@@ -144,3 +147,12 @@ db_from_env = dj_database_url.config()
 DATABASES['default'].update(db_from_env)
 
 django_heroku.settings(locals())
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:3000',
+]
+
+CORS_ORIGIN_REGEX_WHITELIST = [
+    'http://localhost:3000',
+]
