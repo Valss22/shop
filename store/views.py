@@ -1,8 +1,10 @@
 import time
 from django.contrib.auth.models import User
 import jwt
+from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -21,13 +23,10 @@ class ProductsViewSet(ModelViewSet):
     serializer_class = ProductsSerializer
 
 
-class GoogleView(GenericAPIView):
-
-    #JWTAuthentication
+class GoogleView(APIView):
 
     def post(self, request):
         token = {'id_token': request.data.get('id_token')}
-
 
         try:
             idinfo = id_token.verify_oauth2_token(token['id_token'],
@@ -113,16 +112,16 @@ class GoogleView(GenericAPIView):
         except ValueError as err:
             print(err)
             content = {'message': 'Invalid token'}
-            return Response(content)
+            return Response(content, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class RefreshTokenView(GenericAPIView):
+class RefreshTokenView(APIView):
 
     def post(self, request):
         try:
             data = {'token': request.COOKIES['refresh']}
         except:
-            return Response({'message': 'Auth failed'})
+            return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
@@ -136,7 +135,7 @@ class RefreshTokenView(GenericAPIView):
         try:
             jwt.decode(data['token'], settings.REFRESH_SECRET_KEY)
         except:
-            return Response({'message': 'Auth failed'})
+            return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
             UserRefreshToken.objects.get(
@@ -168,12 +167,12 @@ class RefreshTokenView(GenericAPIView):
 
                 return response
             else:
-                return Response({'message': 'Auth failed'})
+                return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
         except:
-            return Response({'message': 'Auth failed'})
+            return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class LogoutView(GenericAPIView):
+class LogoutView(APIView):
     permission_classes = [IsAuth]
 
     def post(self, request):
@@ -181,6 +180,6 @@ class LogoutView(GenericAPIView):
             data = parse_id_token(request.COOKIES['refresh'])['email']
             UserRefreshToken.objects.get(user=User.objects.get(email=data)).delete()
         except:
-            return Response({'message': 'Auth failed'})
+            return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response({'message': 'Logout success'})
+        return Response({'message': 'Logout success'}, status=status.HTTP_401_UNAUTHORIZED)
