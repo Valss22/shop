@@ -1,7 +1,7 @@
 import datetime
 from pathlib import Path
 import os
-# from decouple import config
+from decouple import config
 import django_heroku
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -15,11 +15,13 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = config('SECRET_KEY')
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
+ACCESS_SECRET_KEY = config('ACCESS_SECRET_KEY')
+REFRESH_SECRET_KEY = config('REFRESH_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -33,14 +35,13 @@ INSTALLED_APPS = [
     'store',
     'rest_framework',
     'djoser',
-    'rest_framework_simplejwt',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     ),
+# }
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -106,17 +107,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-JWT_AUTH = {
-    # how long the original token is valid for
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=20),
-
-    # allow refreshing of tokens
-    'JWT_ALLOW_REFRESH': True,
-
-    # this is the maximum time AFTER the token was issued that
-    # it can be refreshed.  exprired tokens can't be refreshed.
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(seconds=60),
-}
+# JWT_AUTH = {
+#     # how long the original token is valid for
+#     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=1),
+#
+#     # allow refreshing of tokens
+#     'JWT_ALLOW_REFRESH': True,
+#
+#     # this is the maximum time AFTER the token was issued that
+#     # it can be refreshed.  exprired tokens can't be refreshed.
+#     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
+# }
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -137,9 +138,9 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
-# import dj_database_url
-#
-# db_from_env = dj_database_url.config()
-# DATABASES['default'].update(db_from_env)
+import dj_database_url
+
+db_from_env = dj_database_url.config()
+DATABASES['default'].update(db_from_env)
 
 django_heroku.settings(locals())

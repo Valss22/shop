@@ -1,25 +1,19 @@
-import json
+import time
 from django.contrib.auth.models import User
-from djoser.social.token import jwt
-from rest_framework import status
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import CreateAPIView, GenericAPIView
+import jwt
+from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
-from rest_framework_simplejwt import serializers
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.settings import api_settings
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+from shop import settings
 from store.decoding import parse_id_token
 from store.models import Product, UserProfile, UserRefreshToken
-from store.serializers import ProductsSerializer, MyTokenObtainPairSerializer
+from store.permissions import IsAuth
+from store.serializers import ProductsSerializer
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from decouple import config
-from rest_framework_simplejwt.backends import TokenBackend
 
 
 class ProductsViewSet(ModelViewSet):
@@ -28,10 +22,12 @@ class ProductsViewSet(ModelViewSet):
 
 
 class GoogleView(GenericAPIView):
-    serializer_class = MyTokenObtainPairSerializer
+
+    #JWTAuthentication
 
     def post(self, request):
         token = {'id_token': request.data.get('id_token')}
+
 
         try:
             idinfo = id_token.verify_oauth2_token(token['id_token'],
@@ -39,23 +35,25 @@ class GoogleView(GenericAPIView):
 
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
-
-            # serializer = self.serializer_class(data=request.data)
-            # serializer.is_valid(raise_exception=True)
-            # data = serializer.validated_data
-
+            payloadAccess = {
+                'email': parse_id_token(token['id_token'])['email'],
+                'exp': time.time() + 15
+            }
+            payloadRefresh = {
+                'email': parse_id_token(token['id_token'])['email'],
+                'exp': time.time() + 40
+            }
             try:
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
-                refresh = self.serializer_class.get_token(User.objects.get
-                                                          (username=parse_id_token(token['id_token'])['name']))
-
-                access = self.serializer_class.get_token(
-                    User.objects.get(username=parse_id_token(token['id_token'])['name'])).access_token
+                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
+                access = str(access)[2:-1]
+                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
+                refresh = str(refresh)[2:-1]
 
                 response = Response()
-                response.set_cookie(key='refresh', value=str(refresh), httponly=True)
+                response.set_cookie(key='refresh', value=refresh, httponly=True)
                 response.data = {
-                    'access': str(access),
+                    'access': access,
                     'email': parse_id_token(token['id_token'])['email'],
                     'name': parse_id_token(token['id_token'])['name'],
                     'picture': parse_id_token(token['id_token'])['picture'],
@@ -66,7 +64,7 @@ class GoogleView(GenericAPIView):
                     (username=parse_id_token(token['id_token'])['name']))
 
                     UserRefreshToken.objects.filter(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name'])).update(refresh=str(refresh))
+                    (username=parse_id_token(token['id_token'])['name'])).update(refresh=refresh)
 
                 except:
                     UserRefreshToken.objects.create(user=User.objects.get
@@ -89,11 +87,10 @@ class GoogleView(GenericAPIView):
                                          parse_id_token(token['id_token'])['email'],
                                          '123')
 
-                refresh = self.serializer_class.get_token(User.objects.get
-                                                          (username=parse_id_token(token['id_token'])['name']))
-
-                access = self.serializer_class.get_token(
-                    User.objects.get(username=parse_id_token(token['id_token'])['name'])).access_token
+                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
+                access = str(access)[2:-1]
+                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
+                refresh = str(refresh)[2:-1]
 
                 UserRefreshToken.objects.create(user=User.objects.get
                 (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
@@ -103,9 +100,9 @@ class GoogleView(GenericAPIView):
                                            picture=parse_id_token(token['id_token'])['picture'])
 
                 response = Response()
-                response.set_cookie(key='refresh', value=str(refresh), httponly=True)
+                response.set_cookie(key='refresh', value=refresh, httponly=True)
                 response.data = {
-                    'access': str(access),
+                    'access': access,
                     'email': parse_id_token(token['id_token'])['email'],
                     'name': parse_id_token(token['id_token'])['name'],
                     'picture': parse_id_token(token['id_token'])['picture'],
@@ -120,42 +117,70 @@ class GoogleView(GenericAPIView):
 
 
 class RefreshTokenView(GenericAPIView):
-    serializer_class = MyTokenObtainPairSerializer
 
     def post(self, request):
-        data = {'token': request.COOKIES['refresh']}
-
-        valid_data = parse_id_token(VerifyJSONWebTokenSerializer().validate(data)['token'])
-
         try:
-            UserRefreshToken.objects.get(user=User.objects.get(id=valid_data['user_id']))
-
-            if UserRefreshToken.objects.get(user=User.objects.get(id=valid_data['user_id'])).refresh == \
-                    request.COOKIES['refresh']:
-                refresh = self.serializer_class.get_token(User.objects.get(id=valid_data['user_id']))
-                access = self.serializer_class.get_token(User.objects.get(id=valid_data['user_id'])).access_token
-
-                UserRefreshToken.objects.filter(user=User.objects.get
-                (id=valid_data['user_id'])).update(refresh=str(refresh))
-
-                response = Response()
-                response.set_cookie(key='refresh', value=refresh, httponly=True)
-                response.data = {
-                    'access': str(access),
-                    'email': User.objects.get(id=refresh['user_id']).email,
-                    'name': User.objects.get(id=refresh['user_id']).username,
-                    'picture': UserProfile.objects.get(user=User.objects.get(id=refresh['user_id'])).picture,
-                }
-                return response
+            data = {'token': request.COOKIES['refresh']}
         except:
             return Response({'message': 'Auth failed'})
-        else:
+
+        payloadAccess = {
+            'email': parse_id_token(data['token'])['email'],
+            'exp': time.time() + 15
+        }
+        payloadRefresh = {
+            'email': parse_id_token(data['token'])['email'],
+            'exp': time.time() + 40
+        }
+
+        try:
+            jwt.decode(data['token'], settings.REFRESH_SECRET_KEY)
+        except:
+            return Response({'message': 'Auth failed'})
+
+        try:
+            UserRefreshToken.objects.get(
+                user=User.objects.get(email=parse_id_token(request.COOKIES['refresh'])['email']))
+
+            if UserRefreshToken.objects.get(
+                    user=User.objects.get(email=parse_id_token(request.COOKIES['refresh'])['email'])).refresh == \
+                    request.COOKIES['refresh']:
+
+                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
+                access = str(access)[2:-1]
+                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
+                refresh = str(refresh)[2:-1]
+
+                UserRefreshToken.objects.filter(
+                    user=User.objects.get(email=parse_id_token(data['token'])['email'])).update(refresh=refresh)
+
+                response = Response()
+
+                response.set_cookie(key='refresh', value=refresh, httponly=True)
+
+                response.data = {
+                    'access': access,
+                    'email': User.objects.get(email=parse_id_token(data['token'])['email']).email,
+                    'name': User.objects.get(email=parse_id_token(data['token'])['email']).username,
+                    'picture': UserProfile.objects.get(
+                        user=User.objects.get(email=parse_id_token(data['token'])['email'])).picture,
+                }
+
+                return response
+            else:
+                return Response({'message': 'Auth failed'})
+        except:
             return Response({'message': 'Auth failed'})
 
 
 class LogoutView(GenericAPIView):
+    permission_classes = [IsAuth]
 
     def post(self, request):
-        data = parse_id_token(request.COOKIES['refresh'])['user_id']
-        UserRefreshToken.objects.get(user=User.objects.get(id=data)).delete()
+        try:
+            data = parse_id_token(request.COOKIES['refresh'])['email']
+            UserRefreshToken.objects.get(user=User.objects.get(email=data)).delete()
+        except:
+            return Response({'message': 'Auth failed'})
+
         return Response({'message': 'Logout success'})
