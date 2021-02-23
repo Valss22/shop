@@ -60,7 +60,9 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
 ]
-#CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_ALLOW_ALL = [
+    "http://127.0.0.1:3000"
+]
 
 ROOT_URLCONF = 'shop.urls'
 
