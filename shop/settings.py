@@ -21,7 +21,7 @@ REFRESH_SECRET_KEY = 'dk9Xe7_csnJuafV^4A9aZwBM=n*E3%QeWEh9LtJ*z*!g-@uBZ@'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['127.0.0.1:3000']
 
 # Application definition
 
@@ -60,9 +60,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
 ]
-CORS_ORIGIN_ALLOW_ALL = [
-    "http://127.0.0.1:3000"
-]
+CORS_ORIGIN_ALLOW_ALL = False
 
 ROOT_URLCONF = 'shop.urls'
 
