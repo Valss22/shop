@@ -21,7 +21,7 @@ REFRESH_SECRET_KEY = 'dk9Xe7_csnJuafV^4A9aZwBM=n*E3%QeWEh9LtJ*z*!g-@uBZ@'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['localhost:3000']
 
 # Application definition
 

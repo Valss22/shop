@@ -31,7 +31,8 @@ class GoogleView(APIView):
         try:
             idinfo = id_token.verify_oauth2_token(token['id_token'],
                                                   requests.Request(),
-                                                  '29897898232-727dsvebqsfa7kqrddl0hhbbfalg0vjp.apps.googleusercontent.com')
+                                                  '29897898232-727dsvebqsfa7kqrddl0hhbbfalg0vjp.'
+                                                  'apps.googleusercontent.com')
 
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
@@ -60,23 +61,23 @@ class GoogleView(APIView):
                 }
 
                 try:
-                    UserRefreshToken.objects.get(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name']))
+                    UserRefreshToken.objects.get(user=User.objects.get(
+                        username=parse_id_token(token['id_token'])['name']))
 
-                    UserRefreshToken.objects.filter(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name'])).update(refresh=refresh)
+                    UserRefreshToken.objects.filter(user=User.objects.get(
+                        username=parse_id_token(token['id_token'])['name'])).update(refresh=refresh)
 
                 except:
-                    UserRefreshToken.objects.create(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
+                    UserRefreshToken.objects.create(user=User.objects.get(
+                        username=parse_id_token(token['id_token'])['name']), refresh=refresh)
 
                 try:
-                    UserProfile.objects.get(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name']))
+                    UserProfile.objects.get(user=User.objects.get(
+                        username=parse_id_token(token['id_token'])['name']))
 
-                    UserProfile.objects.create(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name']),
-                                               picture=parse_id_token(token['id_token'])['picture'])
+                    UserProfile.objects.create(user=User.objects.get(
+                        username=parse_id_token(token['id_token'])['name']),
+                        picture=parse_id_token(token['id_token'])['picture'])
                 except:
                     pass
 
@@ -92,11 +93,11 @@ class GoogleView(APIView):
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
                 refresh = str(refresh)[2:-1]
 
-                UserRefreshToken.objects.create(user=User.objects.get
-                (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
+                UserRefreshToken.objects.create(user=User.objects.get(
+                    username=parse_id_token(token['id_token'])['name']), refresh=refresh)
 
-                UserProfile.objects.create(user=User.objects.get
-                (username=parse_id_token(token['id_token'])['name']),
+                UserProfile.objects.create(user=User.objects.get(
+                    username=parse_id_token(token['id_token'])['name']),
                                            picture=parse_id_token(token['id_token'])['picture'])
 
                 response = Response()
