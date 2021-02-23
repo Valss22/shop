@@ -184,4 +184,4 @@ class LogoutView(APIView):
         except:
             return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return Response({'message': 'Logout success'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'Logout success'})
