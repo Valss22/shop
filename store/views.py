@@ -122,7 +122,7 @@ class RefreshTokenView(APIView):
         try:
             data = {'token': request.COOKIES['refresh']}
         except:
-            return Response({'message': 'Auth failed'})
+            return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
