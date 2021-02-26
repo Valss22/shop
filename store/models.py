@@ -22,6 +22,9 @@ class UserRefreshToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='refresh', null=True)
     refresh = models.TextField(null=True)
 
+    def __str__(self):
+        return f'{self.user}'
+
 
 class Category(models.Model):
     name = models.CharField(max_length=50, verbose_name='Название категории')
