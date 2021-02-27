@@ -1,26 +1,32 @@
 import time
 from django.contrib.auth.models import User
 import jwt
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
-from rest_framework.generics import GenericAPIView
-from rest_framework.response import Response
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from rest_framework.viewsets import ReadOnlyModelViewSet
 from shop import settings
 from store.decoding import parse_id_token
-from store.models import Product, UserProfile, UserRefreshToken
+from store.models import UserProfile, UserRefreshToken, Product
 from store.permissions import IsAuth
 from store.serializers import ProductsSerializer
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from decouple import config
+from rest_framework.response import Response
+
+from store.services import LargeResultsSetPagination, ProductFilter
 
 
-class ProductsViewSet(ModelViewSet):
+class ProductViewSet(ReadOnlyModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductsSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_class = ProductFilter
+    pagination_class = LargeResultsSetPagination
+
+    search_fields = ['name', 'author', 'category']
+    ordering_fields = ['price', 'author', ]
 
 
 class GoogleView(APIView):

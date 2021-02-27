@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'djoser',
     'corsheaders',
+    'django_filters'
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -160,10 +161,17 @@ USE_TZ = True
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 1,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ],
+}
+
 import dj_database_url
 
 db_from_env = dj_database_url.config()
 DATABASES['default'].update(db_from_env)
 
 django_heroku.settings(locals())
-

@@ -35,11 +35,12 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.CASCADE, null=True)
-    name = models.CharField(max_length=50, verbose_name='Название')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
+    name = models.CharField(max_length=50)
+    author = models.CharField(max_length=50, null=True)
     slug = models.SlugField(unique=True, null=True)
-    image = models.ImageField(verbose_name='Изображение', null=True)
-    description = models.CharField(max_length=255, verbose_name='Описание', null=True)
+    image = models.ImageField(null=True, upload_to='images')
+    description = models.CharField(max_length=255, null=True)
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 
     def __str__(self):

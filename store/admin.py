@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from rest_framework.authtoken.models import Token
 
-from store.models import Product, Category, Cart
+from store.models import Category, Cart
 
 from django.apps import apps
 

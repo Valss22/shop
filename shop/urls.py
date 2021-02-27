@@ -3,10 +3,10 @@ from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from store.views import ProductsViewSet, GoogleView, RefreshTokenView, LogoutView
+from store.views import GoogleView, RefreshTokenView, LogoutView, ProductViewSet
 
 router = SimpleRouter()
-router.register(r'product', ProductsViewSet)
+router.register(r'product', ProductViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path to djoser end points
