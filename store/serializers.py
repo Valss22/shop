@@ -1,6 +1,7 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from store.models import Cart, Category, CartProduct, Product
+from store.models import Cart, Category, CartProduct, Product, UserProductRelation
 
 
 class CategorySerializer(ModelSerializer):
@@ -9,10 +10,17 @@ class CategorySerializer(ModelSerializer):
         fields = '__all__'
 
 
-class ProductsSerializer(ModelSerializer):
+class ProductSerializer(ModelSerializer):
+    rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
+
     class Meta:
         model = Product
         fields = '__all__'
+
+
+class UserProductRelationSerializer(ModelSerializer):
+    class Meta:
+        model = UserProductRelation
 
 
 class CartProductsSerializer(ModelSerializer):

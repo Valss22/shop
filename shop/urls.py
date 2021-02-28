@@ -5,10 +5,11 @@ from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 
 
-from store.views import GoogleView, RefreshTokenView, LogoutView, ProductViewSet
+from store.views import GoogleView, RefreshTokenView, LogoutView, ProductViewSet, UserBooksRelationView
 
 router = SimpleRouter()
 router.register(r'product', ProductViewSet)
+router.register(r'product_relation', UserBooksRelationView)
 urlpatterns = [
                   path('admin/', admin.site.urls),
                   # path to djoser end points

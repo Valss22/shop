@@ -1,16 +1,18 @@
 import time
 from django.contrib.auth.models import User
 import jwt
+from django.db.models import Avg, F
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.mixins import UpdateModelMixin
 from rest_framework.views import APIView
-from rest_framework.viewsets import ReadOnlyModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet
 from shop import settings
 from store.decoding import parse_id_token
-from store.models import UserProfile, UserRefreshToken, Product
+from store.models import UserProfile, UserRefreshToken, Product, UserProductRelation
 from store.permissions import IsAuth
-from store.serializers import ProductsSerializer
+from store.serializers import ProductSerializer, UserProductRelationSerializer
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.response import Response
@@ -19,14 +21,28 @@ from store.services import LargeResultsSetPagination, ProductFilter
 
 
 class ProductViewSet(ReadOnlyModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductsSerializer
+    queryset = Product.objects.all().annotate(
+        rating=Avg('userproductrelation__rate'), )
+
+    serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ProductFilter
     pagination_class = LargeResultsSetPagination
 
-    search_fields = ['name', 'author', 'category']
+    search_fields = ['name', 'author']
     ordering_fields = ['price', 'author', ]
+
+
+class UserBooksRelationView(UpdateModelMixin, GenericViewSet):
+    queryset = UserProductRelation.objects.all()
+    serializer_class = UserProductRelationSerializer
+    permission_classes = [IsAuth, ]
+    lookup_field = 'book'
+
+    def get_object(self):
+        obj, created = UserProductRelation.objects.get_or_create(user=self.request.user,
+                                                                 product_id=self.kwargs['book'], )
+        return obj
 
 
 class GoogleView(APIView):
@@ -44,11 +60,11 @@ class GoogleView(APIView):
                 raise ValueError('Wrong issuer.')
             payloadAccess = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 15
+                'exp': time.time() + 1500
             }
             payloadRefresh = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 40
+                'exp': time.time() + 4000
             }
             try:
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
@@ -132,11 +148,11 @@ class RefreshTokenView(APIView):
 
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 15
+            'exp': time.time() + 1500
         }
         payloadRefresh = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 40
+            'exp': time.time() + 4000
         }
 
         try:

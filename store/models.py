@@ -8,6 +8,7 @@ from django.db import models
 # 4) Cart
 # 5) Order
 # 6) Feedback
+from store.validators import validate_percent_field
 
 
 class UserProfile(models.Model):
@@ -45,6 +46,35 @@ class Product(models.Model):
 
     def __str__(self):
         return f'id({self.id}) {self.name}'
+
+
+class UserProductRelation(models.Model):
+    RATE_CHOICES = (
+        (1, "Terribly"),
+        (2, "Bad"),
+        (3, "Fine"),
+        (4, "Good"),
+        (5, "Amazing"),
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    in_cart = models.BooleanField(default=False)
+    rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        from store.services import set_rating
+
+        creating = not self.pk
+        old_rating = self.rate
+
+        super().save(*args, **kwargs)
+
+        new_rating = self.rate
+        if old_rating != new_rating or creating:
+            set_rating(self.product)
+
+    def __str__(self):
+        return f' {self.user.username}: {self.product.name}, RATE {self.rate}'
 
 
 class CartProduct(models.Model):
