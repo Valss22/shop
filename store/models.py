@@ -62,7 +62,6 @@ class UserProductRelation(models.Model):
     rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, blank=True)
     is_rated = models.BooleanField(default=False, blank=True)
 
-
     def save(self, *args, **kwargs):
         from store.services import set_rating
 
