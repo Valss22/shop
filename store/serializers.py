@@ -1,6 +1,9 @@
-from rest_framework import serializers
+from django.contrib.auth.models import User
+from rest_framework import serializers, status
+from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 
+from store.decoding import parse_id_token
 from store.models import Cart, Category, CartProduct, Product, UserProductRelation
 
 
@@ -10,17 +13,34 @@ class CategorySerializer(ModelSerializer):
         fields = '__all__'
 
 
+class UserProductRelationSerializer(ModelSerializer):
+    class Meta:
+        model = UserProductRelation
+        fields = ('product', 'in_cart', 'rate', 'is_rated')
+
+    # def validate(self, attrs):
+    #     if len(attrs) == 1:
+    #         try:
+    #             var = attrs['rate']
+    #             return attrs
+    #         except:
+    #             raise Exception
+    #     else:
+    #         return False
+
+
 class ProductSerializer(ModelSerializer):
     rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
+    reviewers_count = serializers.SerializerMethodField()
+    in_cart = serializers.BooleanField(read_only=True)
+    is_rated = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Product
         fields = '__all__'
 
-
-class UserProductRelationSerializer(ModelSerializer):
-    class Meta:
-        model = UserProductRelation
+    def get_reviewers_count(self, instance):
+        return UserProductRelation.objects.filter(product=instance, ).count()
 
 
 class CartProductsSerializer(ModelSerializer):

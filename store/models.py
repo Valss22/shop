@@ -8,7 +8,6 @@ from django.db import models
 # 4) Cart
 # 5) Order
 # 6) Feedback
-from store.validators import validate_percent_field
 
 
 class UserProfile(models.Model):
@@ -43,6 +42,7 @@ class Product(models.Model):
     image = models.ImageField(null=True, upload_to='images/')
     description = models.CharField(max_length=255, null=True)
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    reviewers = models.ManyToManyField(User, through='UserProductRelation')
 
     def __str__(self):
         return f'id({self.id}) {self.name}'
@@ -56,10 +56,12 @@ class UserProductRelation(models.Model):
         (4, "Good"),
         (5, "Amazing"),
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     in_cart = models.BooleanField(default=False)
     rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, blank=True)
+    is_rated = models.BooleanField(default=False, blank=True)
+
 
     def save(self, *args, **kwargs):
         from store.services import set_rating

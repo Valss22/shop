@@ -1,4 +1,7 @@
 import time
+
+from decouple import config
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 import jwt
 from django.db.models import Avg, F
@@ -17,12 +20,14 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.response import Response
 
-from store.services import LargeResultsSetPagination, ProductFilter
+from store.services import *
 
 
 class ProductViewSet(ReadOnlyModelViewSet):
     queryset = Product.objects.all().annotate(
-        rating=Avg('userproductrelation__rate'), )
+        rating=Avg('userproductrelation__rate'),
+        in_cart=F('userproductrelation__in_cart'),
+        is_rated=F('userproductrelation__is_rated'))
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -33,14 +38,41 @@ class ProductViewSet(ReadOnlyModelViewSet):
     ordering_fields = ['price', 'author', ]
 
 
-class UserBooksRelationView(UpdateModelMixin, GenericViewSet):
+class UserProductRateView(UpdateModelMixin, GenericViewSet):
     queryset = UserProductRelation.objects.all()
     serializer_class = UserProductRelationSerializer
     permission_classes = [IsAuth, ]
     lookup_field = 'book'
 
     def get_object(self):
-        obj, created = UserProductRelation.objects.get_or_create(user=self.request.user,
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+
+        UserProductRelation.objects.filter(user=User.objects.get(email=access['email'])).update(is_rated=True)
+
+        obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
+                                                                 product_id=self.kwargs['book'], )
+
+        # reqData = self.request.data
+        # print(type(obj))
+
+        # if len(reqData) == 1 and list(reqData.keys())[0] == 'rate':
+        return obj
+        # else:
+        #     return Response({'message': 'the only field "rate" must be'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProductCartView(UpdateModelMixin, GenericViewSet):
+    queryset = UserProductRelation.objects.all()
+    serializer_class = UserProductRelationSerializer
+    permission_classes = [IsAuth, ]
+    lookup_field = 'book'
+
+    def get_object(self):
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+
+        obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
                                                                  product_id=self.kwargs['book'], )
         return obj
 
@@ -52,19 +84,17 @@ class GoogleView(APIView):
 
         try:
             idinfo = id_token.verify_oauth2_token(token['id_token'],
-                                                  requests.Request(),
-                                                  '29897898232-727dsvebqsfa7kqrddl0hhbbfalg0vjp'
-                                                  '.apps.googleusercontent.com')
+                                                  requests.Request(), config('googleClientId'))
 
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
             payloadAccess = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 1500
+                'exp': time.time() + 150000
             }
             payloadRefresh = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 4000
+                'exp': time.time() + 400000
             }
             try:
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
@@ -148,11 +178,11 @@ class RefreshTokenView(APIView):
 
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 1500
+            'exp': time.time() + 150000
         }
         payloadRefresh = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 4000
+            'exp': time.time() + 400000
         }
 
         try:

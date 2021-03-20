@@ -11,3 +11,5 @@ def parse_id_token(token: str) -> dict:
     padded = payload + '=' * (4 - len(payload) % 4)
     decoded = base64.b64decode(padded)
     return json.loads(decoded)
+
+

@@ -8,3 +8,5 @@ def validate_percent_field(value):
             _('%(value)s is not an percent'),
             params={'value': value},
         )
+
+
