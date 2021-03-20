@@ -40,7 +40,7 @@ class Product(models.Model):
     author = models.CharField(max_length=50, null=True)
     slug = models.SlugField(unique=True, null=True)
     image = models.ImageField(null=True, upload_to='images/')
-    description = models.TextField(max_length=1000, null=True)
+    description = models.CharField(max_length=1000, null=True)
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
 
