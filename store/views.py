@@ -53,13 +53,12 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
         obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
                                                                  product_id=self.kwargs['book'], )
 
-        # reqData = self.request.data
-        # print(type(obj))
+        reqData = self.request.data
 
-        # if len(reqData) == 1 and list(reqData.keys())[0] == 'rate':
-        return obj
-        # else:
-        #     return Response({'message': 'the only field "rate" must be'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(reqData) == 1 and list(reqData.keys())[0] == 'rate':
+            return obj
+        else:
+            return obj
 
 
 class UserProductCartView(UpdateModelMixin, GenericViewSet):
@@ -91,11 +90,11 @@ class GoogleView(APIView):
                 raise ValueError('Wrong issuer.')
             payloadAccess = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 150000
+                'exp': time.time() + 1500000000000000
             }
             payloadRefresh = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 400000
+                'exp': time.time() + 4000000000000000
             }
             try:
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
@@ -179,11 +178,11 @@ class RefreshTokenView(APIView):
 
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 150000
+            'exp': time.time() + 1500000000000000
         }
         payloadRefresh = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 400000
+            'exp': time.time() + 4000000000000000
         }
 
         try:

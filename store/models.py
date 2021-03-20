@@ -40,7 +40,7 @@ class Product(models.Model):
     author = models.CharField(max_length=50, null=True)
     slug = models.SlugField(unique=True, null=True)
     image = models.ImageField(null=True, upload_to='images/')
-    description = models.CharField(max_length=255, null=True)
+    description = models.TextField(null=True)
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
 
@@ -56,7 +56,7 @@ class UserProductRelation(models.Model):
         (4, "Good"),
         (5, "Amazing"),
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     in_cart = models.BooleanField(default=False)
     rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, blank=True)
