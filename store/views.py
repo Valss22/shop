@@ -143,6 +143,7 @@ class GoogleView(APIView):
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
+                refresh = str(refresh)[2:-1]
 
                 response = Response()
                 response.set_cookie(key='refresh', value=refresh, httponly=True)
@@ -183,6 +184,7 @@ class GoogleView(APIView):
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
 
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
+                refresh = str(refresh)[2:-1]
 
                 UserRefreshToken.objects.create(user=User.objects.get
                 (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
@@ -212,7 +214,7 @@ class RefreshTokenView(APIView):
 
     def post(self, request):
         try:
-            data = {'token': request.COOKIES['refresh'][2:-1]}
+            data = {'token': request.COOKIES['refresh']}
         except:
             return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -226,7 +228,7 @@ class RefreshTokenView(APIView):
         }
 
         try:
-            jwt.decode(data['token'][2:-1], settings.REFRESH_SECRET_KEY, algorithms='HS256')
+            jwt.decode(data['token'], settings.REFRESH_SECRET_KEY, algorithms='HS256')
         except:
             return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -241,6 +243,7 @@ class RefreshTokenView(APIView):
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
 
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
+                refresh = str(refresh)[2:-1]
 
                 UserRefreshToken.objects.filter(
                     user=User.objects.get(email=parse_id_token(data['token'])['email'])).update(refresh=refresh)
