@@ -212,7 +212,7 @@ class RefreshTokenView(APIView):
 
     def post(self, request):
         try:
-            data = {'token': request.COOKIES['refresh']}
+            data = {'token': request.COOKIES['refresh'][2:-1]}
         except:
             return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -226,7 +226,7 @@ class RefreshTokenView(APIView):
         }
 
         try:
-            jwt.decode(data['token'], settings.REFRESH_SECRET_KEY, algorithms='HS256')
+            jwt.decode(data['token'][2:-1], settings.REFRESH_SECRET_KEY, algorithms='HS256')
         except:
             return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
