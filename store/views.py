@@ -133,11 +133,11 @@ class GoogleView(APIView):
                 raise ValueError('Wrong issuer.')
             payloadAccess = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 1500000000000000000000
+                'exp': time.time() + 150000000
             }
             payloadRefresh = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 4000000000000000000000
+                'exp': time.time() + 400000000
             }
             try:
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
@@ -218,15 +218,15 @@ class RefreshTokenView(APIView):
 
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 1500000000000000000000
+            'exp': time.time() + 150000000
         }
         payloadRefresh = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 4000000000000000000000
+            'exp': time.time() + 400000000
         }
 
         try:
-            jwt.decode(data['token'], settings.REFRESH_SECRET_KEY)
+            jwt.decode(data['token'], settings.REFRESH_SECRET_KEY, algorithms='HS256')
         except:
             return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -238,9 +238,9 @@ class RefreshTokenView(APIView):
                     user=User.objects.get(email=parse_id_token(request.COOKIES['refresh'])['email'])).refresh == \
                     request.COOKIES['refresh']:
 
-                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
+                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
 
-                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
+                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
 
                 UserRefreshToken.objects.filter(
                     user=User.objects.get(email=parse_id_token(data['token'])['email'])).update(refresh=refresh)
