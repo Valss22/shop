@@ -14,9 +14,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = config('SECRET_KEY')
-SECRET_KEY = str(os.getenv('SECRET_KEY'))
-ACCESS_SECRET_KEY = 'Na??AgWjw4Qkq8_Gc*Gje$p%9+rKHKT8ZPzz=4Nr7X@JueLT2s'
-REFRESH_SECRET_KEY = 'dk9Xe7_csnJuafV^4A9aZwBM=n*E3%QeWEh9LtJ*z*!g-@uBZ@'
+SECRET_KEY = 'w=k*rty^f7*d))c$3#&^@hdpurm-+bq^t@_(&w_=erckvv(j%8'
+ACCESS_SECRET_KEY = 'v(qngismmzm7qhgy-2@%*u6!p4ua=4_dox-r5o9amza2@$9+&w'
+REFRESH_SECRET_KEY = 'zrl-kx%q#!&#$2k-bex@t*rp_jbbvs3w4(ao(sa330zrruwlyx'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -104,7 +104,7 @@ WSGI_APPLICATION = 'shop.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'shop_db',
+        'NAME': 'shop_db2',
         'USER': 'postgres',
         'PASSWORD': '788556',
         'HOST': 'localhost',

@@ -10,7 +10,7 @@ class IsAuth(BasePermission):
     def has_permission(self, request, view):
         try:
             access = request.headers['Authorization'].split(' ')[1]
-            jwt.decode(access, settings.ACCESS_SECRET_KEY)
+            jwt.decode(access, settings.ACCESS_SECRET_KEY, algorithms='HS256')
             return True
         except:
             return False

@@ -2,14 +2,6 @@ from django.contrib.auth.models import User
 from django.db import models
 
 
-# 1) Category
-# 2) Product
-# 3) CartProduct
-# 4) Cart
-# 5) Order
-# 6) Feedback
-
-
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile", null=True)
     picture = models.CharField(max_length=500)
@@ -79,15 +71,18 @@ class UserProductRelation(models.Model):
 
 
 class CartProduct(models.Model):
-    user = models.ForeignKey(User, verbose_name='Покупатель', on_delete=models.CASCADE,
-                             related_name='UserCartProduct')
-    product = models.ForeignKey(Product, verbose_name='Товар', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    copy_count = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.user} {self.product}'
 
 
 class Cart(models.Model):
-    owner = models.ForeignKey(User, verbose_name='Владелец', on_delete=models.CASCADE,
-                              related_name='ownerCart', null=True)
-    products = models.ManyToManyField(CartProduct, verbose_name='Товары', blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    products = models.ManyToManyField(CartProduct)
+    total_price = models.DecimalField(max_digits=7, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f'{self.owner}({self.owner_id})'

@@ -1,7 +1,4 @@
 import time
-
-from decouple import config
-from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 import jwt
 from django.db.models import Avg, F
@@ -10,12 +7,11 @@ from rest_framework import status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.mixins import UpdateModelMixin
 from rest_framework.views import APIView
-from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet, ModelViewSet
 from shop import settings
-from store.decoding import parse_id_token
-from store.models import UserProfile, UserRefreshToken, Product, UserProductRelation
+from store.models import *
 from store.permissions import IsAuth
-from store.serializers import ProductSerializer, UserProductRelationSerializer
+from store.serializers import *
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.response import Response
@@ -53,15 +49,10 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
         obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
                                                                  product_id=self.kwargs['book'], )
 
-        reqData = self.request.data
-
-        if len(reqData) == 1 and list(reqData.keys())[0] == 'rate':
-            return obj
-        else:
-            return obj
+        return obj
 
 
-class UserProductCartView(UpdateModelMixin, GenericViewSet):
+class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
     queryset = UserProductRelation.objects.all()
     serializer_class = UserProductRelationSerializer
     permission_classes = [IsAuth, ]
@@ -70,10 +61,62 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet):
     def get_object(self):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
+        CartProduct.objects.get_or_create(user=User.objects.get(email=access['email']),
+                                          product=Product.objects.get(id=self.kwargs['book']))
+
+        CartProduct.objects.filter(user=User.objects.get(email=access['email']),
+                                   product=Product.objects.get(id=self.kwargs['book'])).update(
+            copy_count=F('copy_count') + 1)
+
+        Cart.objects.get_or_create(owner=User.objects.get(email=access['email']))
+
+        Cart.objects.filter(owner=User.objects.get(email=access['email'])).first().products.add(
+            CartProduct.objects.filter(user=User.objects.get(email=access['email'])).last()
+        )
+        Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
+            update(total_price=F('total_price') + Product.objects.get(id=self.kwargs['book']).price)
 
         obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
                                                                  product_id=self.kwargs['book'], )
         return obj
+
+
+class CartViewSet(ModelViewSet):
+    queryset = Cart.objects.all()
+    permission_classes = [IsAuth]
+    serializer_class = CartSerializer
+
+
+class CartObjView(APIView):
+    def delete(self, request, pk):
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+
+        if CartProduct.objects.filter(user=User.objects.get(email=access['email']),
+                                      product=Product.objects.get(id=pk)).first().copy_count == 1:
+
+            return Response({'message': 'you cant set less than one book'}, status.HTTP_400_BAD_REQUEST)
+        else:
+            CartProduct.objects.filter(user=User.objects.get(email=access['email']),
+                                       product=Product.objects.get(id=pk)).update(
+                copy_count=F('copy_count') - 1)
+
+            return Response({'message': 'successful deletion of a one book'}, status.HTTP_200_OK)
+
+
+class CartDelObjView(APIView):
+    def delete(self, request, pk):
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+        try:
+            CartProduct.objects.get(user=User.objects.get(email=access['email']), product=Product.objects.get(id=pk))
+
+            CartProduct.objects.filter(user=User.objects.get(email=access['email']),
+                                       product=Product.objects.get(id=pk)).delete()
+
+            return Response({'message': 'book successfully deleted'}, status.HTTP_200_OK)
+        except:
+            return Response({'message': 'book doesnt exists'}, status.HTTP_204_NO_CONTENT)
 
 
 class GoogleView(APIView):
@@ -90,18 +133,16 @@ class GoogleView(APIView):
                 raise ValueError('Wrong issuer.')
             payloadAccess = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 1500000000000000
+                'exp': time.time() + 1500000000000000000000
             }
             payloadRefresh = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 4000000000000000
+                'exp': time.time() + 4000000000000000000000
             }
             try:
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
-                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
-                access = str(access)[2:-1]
-                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
-                refresh = str(refresh)[2:-1]
+                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
+                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
 
                 response = Response()
                 response.set_cookie(key='refresh', value=refresh, httponly=True)
@@ -139,10 +180,9 @@ class GoogleView(APIView):
                 User.objects.create_user(parse_id_token(token['id_token'])['name'],
                                          parse_id_token(token['id_token'])['email'])
 
-                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
-                access = str(access)[2:-1]
-                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
-                refresh = str(refresh)[2:-1]
+                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
+
+                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
 
                 UserRefreshToken.objects.create(user=User.objects.get
                 (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
@@ -178,11 +218,11 @@ class RefreshTokenView(APIView):
 
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 1500000000000000
+            'exp': time.time() + 1500000000000000000000
         }
         payloadRefresh = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 4000000000000000
+            'exp': time.time() + 4000000000000000000000
         }
 
         try:
@@ -198,10 +238,9 @@ class RefreshTokenView(APIView):
                     user=User.objects.get(email=parse_id_token(request.COOKIES['refresh'])['email'])).refresh == \
                     request.COOKIES['refresh']:
 
-                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
-                access = str(access)[2:-1]
-                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
-                refresh = str(refresh)[2:-1]
+                access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
+
+                refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
 
                 UserRefreshToken.objects.filter(
                     user=User.objects.get(email=parse_id_token(data['token'])['email'])).update(refresh=refresh)

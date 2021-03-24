@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 
 from store.decoding import parse_id_token
-from store.models import Cart, Category, CartProduct, Product, UserProductRelation
+from store.models import *
 
 
 class CategorySerializer(ModelSerializer):
@@ -18,22 +18,12 @@ class UserProductRelationSerializer(ModelSerializer):
         model = UserProductRelation
         fields = ('product', 'in_cart', 'rate', 'is_rated')
 
-    # def validate(self, attrs):
-    #     if len(attrs) == 1:
-    #         try:
-    #             var = attrs['rate']
-    #             return attrs
-    #         except:
-    #             raise Exception
-    #     else:
-    #         return False
-
 
 class ProductSerializer(ModelSerializer):
     rating = serializers.DecimalField(max_digits=2, decimal_places=1, read_only=True, default=0)
     reviewers_count = serializers.SerializerMethodField()
-    in_cart = serializers.BooleanField(read_only=True,)
-    is_rated = serializers.BooleanField(read_only=True,)
+    in_cart = serializers.BooleanField(read_only=True, )
+    is_rated = serializers.BooleanField(read_only=True, )
 
     class Meta:
         model = Product
@@ -46,10 +36,17 @@ class ProductSerializer(ModelSerializer):
 class CartProductsSerializer(ModelSerializer):
     class Meta:
         model = CartProduct
-        fields = '__all__'
+        exclude = ('user',)
+        depth = 1
 
 
 class CartSerializer(ModelSerializer):
+    products = CartProductsSerializer(read_only=True, many=True)
+    unique_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Cart
-        fields = '__all__'
+        exclude = ('owner',)
+
+    def get_unique_count(self, instance):
+        return Cart.objects.filter(owner=instance.owner).first().products.count()
