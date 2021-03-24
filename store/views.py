@@ -23,7 +23,7 @@ class ProductViewSet(ReadOnlyModelViewSet):
     queryset = Product.objects.all().annotate(
         rating=Avg('userproductrelation__rate'),
         in_cart=F('userproductrelation__in_cart'),
-        is_rated=F('userproductrelation__is_rated'))
+        is_rated=F('userproductrelation__is_rated'), )
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -101,6 +101,9 @@ class CartObjView(APIView):
                                        product=Product.objects.get(id=pk)).update(
                 copy_count=F('copy_count') - 1)
 
+            Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
+                update(total_price=F('total_price') - Product.objects.get(id=pk).price)
+
             return Response({'message': 'successful deletion of a one book'}, status.HTTP_200_OK)
 
 
@@ -113,6 +116,16 @@ class CartDelObjView(APIView):
 
             CartProduct.objects.filter(user=User.objects.get(email=access['email']),
                                        product=Product.objects.get(id=pk)).delete()
+            Cart.objects.filter(owner=User.objects.get(email=access['email']))
+
+            inst = CartSerializer()
+            cart = Cart.objects.filter(owner=User.objects.get(email=access['email'])).first()
+
+            if CartSerializer.get_unique_count(inst, cart) == 0:
+                Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
+            else:
+                Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
+                    update(total_price=F('total_price') - Product.objects.get(id=pk).price)
 
             return Response({'message': 'book successfully deleted'}, status.HTTP_200_OK)
         except:
