@@ -36,5 +36,6 @@ class FixInCart(BasePermission):
                                            id=i.id).update(in_cart=False)
             return True
         except:
+            for i in list(Product.objects.all()):
+                Product.objects.filter(id=i.id).update(in_cart=False)
             return True
-
