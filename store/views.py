@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet, ModelViewSet
 from shop import settings
 from store.models import *
-from store.permissions import IsAuth
+from store.permissions import *
 from store.serializers import *
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -22,16 +22,15 @@ from store.services import *
 class ProductViewSet(ReadOnlyModelViewSet):
     queryset = Product.objects.all().annotate(
         rating=Avg('userproductrelation__rate'),
-        in_cart=F('userproductrelation__in_cart'),
         is_rated=F('userproductrelation__is_rated'), )
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ProductFilter
     pagination_class = LargeResultsSetPagination
-
     search_fields = ['name', 'author']
     ordering_fields = ['price', 'author', ]
+    permission_classes = [FixInCart]
 
 
 class UserProductRateView(UpdateModelMixin, GenericViewSet):
@@ -126,6 +125,9 @@ class CartDelObjView(APIView):
             else:
                 Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
                     update(total_price=F('total_price') - Product.objects.get(id=pk).price)
+
+            UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
+                                               product=Product.objects.get(id=pk)).update(in_cart=False)
 
             return Response({'message': 'book successfully deleted'}, status.HTTP_200_OK)
         except:

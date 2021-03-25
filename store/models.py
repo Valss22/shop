@@ -27,6 +27,7 @@ class Category(models.Model):
 
 
 class Product(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='UserProduct', null=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=50)
     author = models.CharField(max_length=50, null=True)
@@ -35,6 +36,7 @@ class Product(models.Model):
     description = models.TextField(null=True, max_length=255)
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
+    in_cart = models.BooleanField(default=False)
 
     def __str__(self):
         return f'id({self.id}) {self.name}'

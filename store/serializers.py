@@ -22,7 +22,6 @@ class UserProductRelationSerializer(ModelSerializer):
 class ProductSerializer(ModelSerializer):
     rating = serializers.DecimalField(max_digits=2, decimal_places=1, read_only=True, default=0)
     reviewers_count = serializers.SerializerMethodField()
-    in_cart = serializers.BooleanField(read_only=True, )
     is_rated = serializers.BooleanField(read_only=True, )
 
     class Meta:
