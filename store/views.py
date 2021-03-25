@@ -80,6 +80,7 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         for i in list(Product.objects.all()):
             if UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
                                                product=Product.objects.get(id=i.id)).in_cart:
+
                 Product.objects.filter(user=User.objects.get(email=access['email']),
                                        id=i.id).update(in_cart=True)
         return obj
@@ -153,11 +154,11 @@ class GoogleView(APIView):
                 raise ValueError('Wrong issuer.')
             payloadAccess = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 150000000
+                'exp': time.time() + 15000
             }
             payloadRefresh = {
                 'email': parse_id_token(token['id_token'])['email'],
-                'exp': time.time() + 400000000
+                'exp': time.time() + 40000
             }
             try:
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
@@ -240,11 +241,11 @@ class RefreshTokenView(APIView):
 
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 150000000
+            'exp': time.time() + 15000
         }
         payloadRefresh = {
             'email': parse_id_token(data['token'])['email'],
-            'exp': time.time() + 400000000
+            'exp': time.time() + 40000
         }
 
         try:
