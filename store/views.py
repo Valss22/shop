@@ -77,6 +77,11 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
 
         obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
                                                                  product_id=self.kwargs['book'], )
+        for i in list(Product.objects.all()):
+            if UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
+                                               product=Product.objects.get(id=i.id)).in_cart:
+                Product.objects.filter(user=User.objects.get(email=access['email']),
+                                       id=i.id).update(in_cart=True)
         return obj
 
 
