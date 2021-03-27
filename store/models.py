@@ -52,6 +52,15 @@ class Product(models.Model):
         return f'id({self.id}) {self.name}'
 
 
+class CartProduct(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    copy_count = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f'{self.user} {self.product}'
+
+
 class UserProductRelation(models.Model):
     RATE_CHOICES = (
         (1, "Terribly"),
@@ -65,6 +74,7 @@ class UserProductRelation(models.Model):
     in_cart = models.BooleanField(default=False)
     rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, blank=True)
     is_rated = models.BooleanField(default=False, blank=True)
+    info = models.ForeignKey(CartProduct, null=True, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         from store.services import set_rating
@@ -80,15 +90,6 @@ class UserProductRelation(models.Model):
 
     def __str__(self):
         return f' {self.user.username}: {self.product.name}, RATE {self.rate}'
-
-
-class CartProduct(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    copy_count = models.IntegerField(default=0)
-
-    def __str__(self):
-        return f'{self.user} {self.product}'
 
 
 class Cart(models.Model):

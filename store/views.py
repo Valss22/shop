@@ -53,7 +53,7 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
 
 class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
     queryset = UserProductRelation.objects.all()
-    serializer_class = CartProductsSerializer
+    serializer_class = UserProductRelationSerializer
     permission_classes = [IsAuth, ]
     lookup_field = 'book'
 
@@ -75,16 +75,23 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
             update(total_price=F('total_price') + Product.objects.get(id=self.kwargs['book']).price)
 
-        # obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
-        #                                                          product_id=self.kwargs['book'], )
+        obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
+                                                                 product_id=self.kwargs['book'],
+                                                                 info=CartProduct.objects.get(
+                                                                     user=User.objects.get(email=access['email']),
+                                                                     product_id=self.kwargs['book']))
 
-        obj = CartProduct.objects.get(user=User.objects.get(email=access['email']), product_id=self.kwargs['book'])
+        UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
+                                           product_id=self.kwargs['book']).update(in_cart=True)
+
+        print(UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
+                                                 product_id=self.kwargs['book']).first().in_cart)
 
         for i in list(Product.objects.all()):
             if UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
-                                               product=Product.objects.get(id=i.id)).in_cart:
-                Product.objects.filter(user=User.objects.get(email=access['email']),
-                                       id=i.id).update(in_cart=True)
+                                        product=Product.objects.get(id=i.id)).in_cart:
+
+                Product.objects.filter(user=User.objects.get(email=access['email']),id=i.id).update(in_cart=True)
 
         return obj
 
@@ -95,7 +102,7 @@ class CartViewSet(ModelViewSet):
     serializer_class = CartSerializer
 
 
-class CartObjView(UpdateModelMixin, GenericViewSet,):
+class CartObjView(UpdateModelMixin, GenericViewSet, ):
     queryset = UserProductRelation.objects.all()
     serializer_class = CartProductsSerializer
     permission_classes = [IsAuth, ]
@@ -118,7 +125,9 @@ class CartObjView(UpdateModelMixin, GenericViewSet,):
                 update(total_price=F('total_price') - Product.objects.get(id=self.kwargs['book']).price)
 
             # return Response({'message': 'successful deletion of a one book'}, status.HTTP_200_OK)
+
             obj = CartProduct.objects.get(user=User.objects.get(email=access['email']), product_id=self.kwargs['book'])
+
             return obj
 
 

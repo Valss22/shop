@@ -13,10 +13,26 @@ class CategorySerializer(ModelSerializer):
         fields = '__all__'
 
 
+class CartProductsSerializer(ModelSerializer):
+    copy_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CartProduct
+        exclude = ('user',)
+        depth = 1
+
+    def get_copy_price(self, instance):
+        return CartProduct.objects.filter(user=instance.user, product=instance.product).first().copy_count * \
+               Product.objects.get(id=instance.product.id).price
+
+
 class UserProductRelationSerializer(ModelSerializer):
+    info = CartProductsSerializer(read_only=True, )
+
     class Meta:
         model = UserProductRelation
-        fields = ('product', 'in_cart', 'rate', 'is_rated')
+        exclude = ('user', 'product',)
+        depth = 1
 
 
 class CommentsSerializer(ModelSerializer):
@@ -38,19 +54,6 @@ class ProductSerializer(ModelSerializer):
 
     def get_reviewers_count(self, instance):
         return UserProductRelation.objects.filter(product=instance, ).count()
-
-
-class CartProductsSerializer(ModelSerializer):
-    copy_price = serializers.SerializerMethodField()
-
-    class Meta:
-        model = CartProduct
-        exclude = ('user',)
-        depth = 1
-
-    def get_copy_price(self, instance):
-        return CartProduct.objects.filter(user=instance.user, product=instance.product).first().copy_count * \
-               Product.objects.get(id=instance.product.id).price
 
 
 class CartSerializer(ModelSerializer):
