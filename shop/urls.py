@@ -12,7 +12,6 @@ router.register(r'product', ProductViewSet)
 router.register(r'product/rate', UserProductRateView)
 router.register(r'product/cart', UserProductCartView)
 router.register(r'cart', CartViewSet)
-router.register(r'feedback', FeedbackViewSet)
 router.register(r'feedback/form', FeedbackFormView)
 urlpatterns = [
                   path('admin/', admin.site.urls),
