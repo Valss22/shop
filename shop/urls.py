@@ -11,6 +11,7 @@ router = SimpleRouter()
 router.register(r'product', ProductViewSet)
 router.register(r'product/rate', UserProductRateView)
 router.register(r'product/cart', UserProductCartView)
+router.register(r'product/cart/delete', CartObjView)
 router.register(r'cart', CartViewSet)
 router.register(r'feedback/form', FeedbackFormView)
 urlpatterns = [
@@ -23,7 +24,6 @@ urlpatterns = [
 
                   path('user/refresh/', RefreshTokenView.as_view()),
                   path('user/logout/', LogoutView.as_view()),
-                  path('product/cart/delete/<int:pk>/', CartObjView.as_view()),
                   path('product/cart/deleteBook/<int:pk>/', CartDelObjView.as_view())
 
                   # path to our account's app endpoints

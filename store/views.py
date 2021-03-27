@@ -53,7 +53,7 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
 
 class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
     queryset = UserProductRelation.objects.all()
-    serializer_class = UserProductRelationSerializer
+    serializer_class = CartProductsSerializer
     permission_classes = [IsAuth, ]
     lookup_field = 'book'
 
@@ -75,13 +75,17 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
             update(total_price=F('total_price') + Product.objects.get(id=self.kwargs['book']).price)
 
-        obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
-                                                                 product_id=self.kwargs['book'], )
+        # obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
+        #                                                          product_id=self.kwargs['book'], )
+
+        obj = CartProduct.objects.get(user=User.objects.get(email=access['email']), product_id=self.kwargs['book'])
+
         for i in list(Product.objects.all()):
             if UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
                                                product=Product.objects.get(id=i.id)).in_cart:
                 Product.objects.filter(user=User.objects.get(email=access['email']),
                                        id=i.id).update(in_cart=True)
+
         return obj
 
 
@@ -91,24 +95,31 @@ class CartViewSet(ModelViewSet):
     serializer_class = CartSerializer
 
 
-class CartObjView(APIView):
-    def delete(self, request, pk):
+class CartObjView(UpdateModelMixin, GenericViewSet,):
+    queryset = UserProductRelation.objects.all()
+    serializer_class = CartProductsSerializer
+    permission_classes = [IsAuth, ]
+    lookup_field = 'book'
+
+    def get_object(self):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
 
         if CartProduct.objects.filter(user=User.objects.get(email=access['email']),
-                                      product=Product.objects.get(id=pk)).first().copy_count == 1:
+                                      product=Product.objects.get(id=self.kwargs['book'])).first().copy_count == 1:
 
             return Response({'message': 'you cant set less than one book'}, status.HTTP_400_BAD_REQUEST)
         else:
             CartProduct.objects.filter(user=User.objects.get(email=access['email']),
-                                       product=Product.objects.get(id=pk)).update(
+                                       product=Product.objects.get(id=self.kwargs['book'])).update(
                 copy_count=F('copy_count') - 1)
 
             Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
-                update(total_price=F('total_price') - Product.objects.get(id=pk).price)
+                update(total_price=F('total_price') - Product.objects.get(id=self.kwargs['book']).price)
 
-            return Response({'message': 'successful deletion of a one book'}, status.HTTP_200_OK)
+            # return Response({'message': 'successful deletion of a one book'}, status.HTTP_200_OK)
+            obj = CartProduct.objects.get(user=User.objects.get(email=access['email']), product_id=self.kwargs['book'])
+            return obj
 
 
 class CartDelObjView(APIView):
