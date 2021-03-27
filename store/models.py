@@ -88,3 +88,7 @@ class Cart(models.Model):
 
     def __str__(self):
         return f'{self.owner}({self.owner_id})'
+
+
+# class Feedback(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.SET())

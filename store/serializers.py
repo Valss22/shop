@@ -33,10 +33,16 @@ class ProductSerializer(ModelSerializer):
 
 
 class CartProductsSerializer(ModelSerializer):
+    copy_price = serializers.SerializerMethodField()
+
     class Meta:
         model = CartProduct
         exclude = ('user',)
         depth = 1
+
+    def get_copy_price(self, instance):
+        return CartProduct.objects.filter(user=instance.user, product=instance.product).first().copy_count * \
+               Product.objects.get(id=instance.product.id).price
 
 
 class CartSerializer(ModelSerializer):
