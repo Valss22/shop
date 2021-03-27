@@ -19,10 +19,18 @@ class UserProductRelationSerializer(ModelSerializer):
         fields = ('product', 'in_cart', 'rate', 'is_rated')
 
 
+class CommentsSerializer(ModelSerializer):
+    class Meta:
+        model = Feedback
+        exclude = ('user',)
+        depth = 1
+
+
 class ProductSerializer(ModelSerializer):
     rating = serializers.DecimalField(max_digits=2, decimal_places=1, read_only=True, default=0)
     reviewers_count = serializers.SerializerMethodField()
     is_rated = serializers.BooleanField(read_only=True, )
+    comments = CommentsSerializer(read_only=True, many=True)
 
     class Meta:
         model = Product
@@ -55,3 +63,9 @@ class CartSerializer(ModelSerializer):
 
     def get_unique_count(self, instance):
         return Cart.objects.filter(owner=instance.owner).first().products.count()
+
+
+class FeedbackSerializer(ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = '__all__'

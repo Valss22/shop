@@ -80,7 +80,6 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         for i in list(Product.objects.all()):
             if UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
                                                product=Product.objects.get(id=i.id)).in_cart:
-
                 Product.objects.filter(user=User.objects.get(email=access['email']),
                                        id=i.id).update(in_cart=True)
         return obj
@@ -138,6 +137,30 @@ class CartDelObjView(APIView):
             return Response({'message': 'book successfully deleted'}, status.HTTP_200_OK)
         except:
             return Response({'message': 'book doesnt exists'}, status.HTTP_204_NO_CONTENT)
+
+
+class FeedbackFormView(UpdateModelMixin, GenericViewSet, ):
+    queryset = Feedback.objects.all()
+    permission_classes = [IsAuth, ]
+    serializer_class = FeedbackSerializer
+    lookup_field = 'book'
+
+    def get_object(self):
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+
+        obj, created = Feedback.objects.get_or_create(user=User.objects.get(email=access['email']),
+                                                      username=User.objects.get(email=access['email']).username, )
+
+        Product.objects.get(id=self.kwargs['book']).comments.add(
+            Feedback.objects.get(user=User.objects.get(email=access['email'])))
+
+        return obj
+
+
+class FeedbackViewSet(ModelViewSet):
+    queryset = Feedback.objects.all()
+    serializer_class = FeedbackSerializer
 
 
 class GoogleView(APIView):
