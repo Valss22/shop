@@ -84,14 +84,7 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
                                            product_id=self.kwargs['book']).update(in_cart=True)
 
-        print(UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
-                                                 product_id=self.kwargs['book']).first().in_cart)
-
-        for i in list(Product.objects.all()):
-            if UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
-                                        product=Product.objects.get(id=i.id)).in_cart:
-
-                Product.objects.filter(user=User.objects.get(email=access['email']),id=i.id).update(in_cart=True)
+        Product.objects.filter(user=User.objects.get(email=access['email']),id=self.kwargs['book']).update(in_cart=True)
 
         return obj
 
