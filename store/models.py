@@ -36,7 +36,7 @@ class Feedback(models.Model):
 
 
 class Product(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='UserProduct', null=True, blank=True)
+    user = models.ManyToManyField(User, related_name='UserProduct', null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=50)
     author = models.CharField(max_length=50, null=True)
