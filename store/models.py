@@ -73,7 +73,7 @@ class UserProductRelation(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     in_cart = models.BooleanField(default=False)
     rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, blank=True)
-    is_rated = models.BooleanField(default=False, blank=True)
+    is_rated = models.BooleanField(default=False)
     info = models.ForeignKey(CartProduct, null=True, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):

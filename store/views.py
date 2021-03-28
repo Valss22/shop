@@ -35,7 +35,7 @@ class ProductViewSet(ReadOnlyModelViewSet):
 
 class UserProductRateView(UpdateModelMixin, GenericViewSet):
     queryset = UserProductRelation.objects.all()
-    serializer_class = UserProductRelationSerializer
+    serializer_class = ProductRelationSerializer
     permission_classes = [IsAuth, ]
     lookup_field = 'book'
 
@@ -43,17 +43,27 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
 
-        UserProductRelation.objects.filter(user=User.objects.get(email=access['email'])).update(is_rated=True)
+        CartProduct.objects.get_or_create(user=User.objects.get(email=access['email']),
+                                          product=Product.objects.get(id=self.kwargs['book']))
 
         obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
-                                                                 product_id=self.kwargs['book'], )
+                                                                 product_id=self.kwargs['book'],
+                                                                 info=CartProduct.objects.get(
+                                                                     user=User.objects.get(email=access['email']),
+                                                                     product_id=self.kwargs['book']))
 
+        # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']), product_id=self.kwargs['book'],
+        #                                    info=CartProduct.objects.get(
+        #                                        user=User.objects.get(email=access['email']),
+        #                                        product_id=self.kwargs['book'])).update(is_rated=True)
+        obj.is_rated = True
+        obj.save()
         return obj
 
 
 class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
     queryset = UserProductRelation.objects.all()
-    serializer_class = UserProductRelationSerializer
+    serializer_class = ProductRelationSerializer
     permission_classes = [IsAuth, ]
     lookup_field = 'book'
 
@@ -81,18 +91,34 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
                                                                      user=User.objects.get(email=access['email']),
                                                                      product_id=self.kwargs['book']))
 
-        UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
-                                           product_id=self.kwargs['book']).update(in_cart=True)
+        # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
+        #                                    product_id=self.kwargs['book']).update(in_cart=True)
 
-        Product.objects.filter(user=User.objects.get(email=access['email']),id=self.kwargs['book']).update(in_cart=True)
+        Product.objects.filter(user=User.objects.get(email=access['email']), id=self.kwargs['book']).update(
+            in_cart=True)
 
         return obj
 
 
-class CartViewSet(ModelViewSet):
+class CartViewSet(ReadOnlyModelViewSet):
     queryset = Cart.objects.all()
     permission_classes = [IsAuth]
     serializer_class = CartSerializer
+
+
+class CartDeleteView(APIView):
+    permission_classes = [IsAuth]
+
+    def delete(self, request, pk):
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+        try:
+            CartProduct.objects.get(user=User.objects.get(email=access['email']))
+            CartProduct.objects.filter(user=User.objects.get(email=access['email'])).delete()
+            Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
+            return Response({"message": "Cart deleted succes"}, status.HTTP_200_OK)
+        except:
+            return Response({"message": "Cart is empty"}, status.HTTP_204_NO_CONTENT)
 
 
 class CartObjView(UpdateModelMixin, GenericViewSet, ):
@@ -125,6 +151,8 @@ class CartObjView(UpdateModelMixin, GenericViewSet, ):
 
 
 class CartDelObjView(APIView):
+    permission_classes = [IsAuth]
+
     def delete(self, request, pk):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
@@ -144,8 +172,10 @@ class CartDelObjView(APIView):
                 Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
                     update(total_price=F('total_price') - Product.objects.get(id=pk).price)
 
-            UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
-                                               product=Product.objects.get(id=pk)).update(in_cart=False)
+            # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
+            #                                    product=Product.objects.get(id=pk)).update(in_cart=False)
+
+            Product.objects.filter(user=User.objects.get(email=access['email']), id=pk).update(in_cart=False)
 
             return Response({'message': 'book successfully deleted'}, status.HTTP_200_OK)
         except:

@@ -26,7 +26,7 @@ class CartProductsSerializer(ModelSerializer):
                Product.objects.get(id=instance.product.id).price
 
 
-class UserProductRelationSerializer(ModelSerializer):
+class ProductRelationSerializer(ModelSerializer):
     info = CartProductsSerializer(read_only=True, )
 
     class Meta:
