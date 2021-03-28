@@ -36,7 +36,7 @@ class Feedback(models.Model):
 
 
 class Product(models.Model):
-    user = models.ManyToManyField(User, related_name='UserProduct', null=True, blank=True)
+    #user = models.ManyToManyField(User, related_name='UserProduct', null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=50)
     author = models.CharField(max_length=50, null=True)
@@ -45,7 +45,7 @@ class Product(models.Model):
     description = models.TextField(null=True, max_length=255)
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
-    in_cart = models.BooleanField(default=False)
+    #in_cart = models.BooleanField(default=False)
     comments = models.ManyToManyField(Feedback, null=True, blank=True)
 
     def __str__(self):

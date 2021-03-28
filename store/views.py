@@ -22,7 +22,8 @@ from store.services import *
 class ProductViewSet(ReadOnlyModelViewSet):
     queryset = Product.objects.all().annotate(
         rating=Avg('userproductrelation__rate'),
-        is_rated=F('userproductrelation__is_rated'), )
+        is_rated=F('userproductrelation__is_rated'),
+        in_cart=F('userproductrelation__in_cart'))
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -94,8 +95,8 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
         #                                    product_id=self.kwargs['book']).update(in_cart=True)
 
-        Product.objects.filter(user=User.objects.get(email=access['email']), id=self.kwargs['book']).update(
-            in_cart=True)
+        # Product.objects.filter(user=User.objects.get(email=access['email']), id=self.kwargs['book']).update(
+        #     in_cart=True)
 
         return obj
 
@@ -116,7 +117,7 @@ class CartDeleteView(APIView):
 
             CartProduct.objects.filter(user=User.objects.get(email=access['email'])).delete()
             Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
-            Product.objects.filter(user=User.objects.get(email=access['email'])).update(in_cart=False)
+            #Product.objects.filter(user=User.objects.get(email=access['email'])).update(in_cart=False)
 
             return Response({"message": "Cart deleted succes"}, status.HTTP_200_OK)
         else:
