@@ -24,15 +24,11 @@ class FixInCart(BasePermission):
             access = request.headers['Authorization'].split(' ')[1]
             access = parse_id_token(access)
             Product.objects.all().update(user=User.objects.get(email=access['email']))
-            try:
-                for i in list(CartProduct.objects.all()):
-                    if CartProduct.objects.get(user=User.objects.get(email=access['email']),
-                                               product=i.product).in_cart:
 
-                        Product.objects.filter(user=User.objects.get(email=access['email']),
-                                               id=i.product.id).update(in_cart=True)
-            except:
-                pass
+            for i in list(CartProduct.objects.all()):
+                Product.objects.filter(user=User.objects.get(email=access['email']),
+                                       id=i.product.id).update(in_cart=True)
+
             # for i in list(Product.objects.all()):
             #     Product.objects.filter(id=i.id).update(user=User.objects.get(email=access['email']))
             #
