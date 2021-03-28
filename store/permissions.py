@@ -23,15 +23,15 @@ class FixInCart(BasePermission):
         try:
             access = request.headers['Authorization'].split(' ')[1]
             access = parse_id_token(access)
-            for i in list(Product.objects.all()):
-                try:
-                    UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
-                                                    product=i)
-                    continue
-                except:
-                    UserProductRelation.objects.create(user=User.objects.get(email=access['email']),
-                                                       product=i, in_cart=False, is_rated=False,
-                                                       rate=None, info=None)
+            # for i in list(Product.objects.all()):
+            #     try:
+            #         UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
+            #                                         product=i)
+            #         continue
+            #     except:
+            #         UserProductRelation.objects.create(user=User.objects.get(email=access['email']),
+            #                                            product=i, in_cart=False, is_rated=False,
+            #                                            rate=None, info=None)
 
             # Product.objects.all().update(user=User.objects.get(email=access['email']))
             # for i in list(Product.objects.all()):
