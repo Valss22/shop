@@ -82,8 +82,8 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         Cart.objects.filter(owner=User.objects.get(email=access['email'])).first().products.add(
             CartProduct.objects.filter(user=User.objects.get(email=access['email'])).last()
         )
-        Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
-            update(total_price=F('total_price') + Product.objects.get(id=self.kwargs['book']).price)
+        # Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
+        #     update(total_price=F('total_price') + Product.objects.get(id=self.kwargs['book']).price)
 
         obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
                                                                  product_id=self.kwargs['book'],
@@ -112,12 +112,13 @@ class CartDeleteView(APIView):
     def delete(self, request, pk):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
-        try:
-            CartProduct.objects.get(user=User.objects.get(email=access['email']))
+        if len(list(CartProduct.objects.filter(user=User.objects.get(email=access['email'])))) > 0:
+
             CartProduct.objects.filter(user=User.objects.get(email=access['email'])).delete()
             Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
+
             return Response({"message": "Cart deleted succes"}, status.HTTP_200_OK)
-        except:
+        else:
             return Response({"message": "Cart is empty"}, status.HTTP_204_NO_CONTENT)
 
 
@@ -161,20 +162,20 @@ class CartDelObjView(APIView):
 
             CartProduct.objects.filter(user=User.objects.get(email=access['email']),
                                        product=Product.objects.get(id=pk)).delete()
-            Cart.objects.filter(owner=User.objects.get(email=access['email']))
-
+            # Cart.objects.filter(owner=User.objects.get(email=access['email']))
+            #
             inst = CartSerializer()
             cart = Cart.objects.filter(owner=User.objects.get(email=access['email'])).first()
-            inst2 = CartProductsSerializer()
-            cartProduct2 = CartProduct.objects.get(user=User.objects.get(email=access['email']),
-                                                   product_id=pk)
-            copy_price = CartProductsSerializer.get_copy_price(inst2, cartProduct2)
+            # inst2 = CartProductsSerializer()
+            # cartProduct2 = CartProduct.objects.get(user=User.objects.get(email=access['email']),
+            #                                        product_id=pk)
+            # copy_price = CartProductsSerializer.get_copy_price(inst2, cartProduct2)
 
             if CartSerializer.get_unique_count(inst, cart) == 0:
                 Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
-            else:
-                Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
-                    update(total_price=F('total_price') - copy_price)
+            # else:
+            #     Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
+            #         update(total_price=F('total_price') - copy_price)
 
             # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
             #                                    product=Product.objects.get(id=pk)).update(in_cart=False)

@@ -59,6 +59,7 @@ class ProductSerializer(ModelSerializer):
 class CartSerializer(ModelSerializer):
     products = CartProductsSerializer(read_only=True, many=True)
     unique_count = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
@@ -66,6 +67,13 @@ class CartSerializer(ModelSerializer):
 
     def get_unique_count(self, instance):
         return Cart.objects.filter(owner=instance.owner).first().products.count()
+
+    def get_total_price(self, instacne):
+        tp = 0
+        for i in list(CartProduct.objects.all()):
+            if i.user == instacne.owner:
+                tp += i.copy_count * i.product.price
+        return tp
 
 
 class FeedbackSerializer(ModelSerializer):
