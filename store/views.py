@@ -165,12 +165,16 @@ class CartDelObjView(APIView):
 
             inst = CartSerializer()
             cart = Cart.objects.filter(owner=User.objects.get(email=access['email'])).first()
+            inst2 = CartProductsSerializer()
+            cartProduct2 = CartProduct.objects.get(user=User.objects.get(email=access['email']),
+                                                   product_id=pk)
+            copy_price = CartProductsSerializer.get_copy_price(inst2, cartProduct2)
 
             if CartSerializer.get_unique_count(inst, cart) == 0:
                 Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
             else:
                 Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
-                    update(total_price=F('total_price') - Product.objects.get(id=pk).price)
+                    update(total_price=F('total_price') - copy_price)
 
             # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
             #                                    product=Product.objects.get(id=pk)).update(in_cart=False)
