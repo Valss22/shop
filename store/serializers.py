@@ -64,7 +64,7 @@ class CartSerializer(ModelSerializer):
 
     class Meta:
         model = Cart
-        exclude = ('owner',)
+        fields = '__all__'
 
     def get_unique_count(self, instance):
         return Cart.objects.filter(owner=instance.owner).first().products.count()

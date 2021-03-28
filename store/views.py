@@ -101,10 +101,28 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         return obj
 
 
-class CartViewSet(ReadOnlyModelViewSet):
+class CartViewSet(ModelViewSet):
     queryset = Cart.objects.all()
     permission_classes = [IsAuth]
     serializer_class = CartSerializer
+
+    def get_queryset(self):
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+        queryset = self.queryset.filter(owner_id=User.objects.get(email=access['email']).id)
+
+        return queryset
+
+
+# class CartViewSet(APIView):
+#     permission_classes = [IsAuth]
+#
+#     def get(self, request, format=None):
+#         access = self.request.headers['Authorization'].split(' ')[1]
+#         access = parse_id_token(access)
+#
+#         queryset = list(Cart.objects.filter(owner=User.objects.get(email=access['email'])))
+#         return Response(queryset)
 
 
 class CartDeleteView(APIView):
@@ -117,7 +135,7 @@ class CartDeleteView(APIView):
 
             CartProduct.objects.filter(user=User.objects.get(email=access['email'])).delete()
             Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
-            #Product.objects.filter(user=User.objects.get(email=access['email'])).update(in_cart=False)
+            # Product.objects.filter(user=User.objects.get(email=access['email'])).update(in_cart=False)
 
             return Response({"message": "Cart deleted success"}, status.HTTP_200_OK)
         else:
@@ -183,7 +201,7 @@ class CartDelObjView(APIView):
             # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
             #                                    product=Product.objects.get(id=pk)).update(in_cart=False)
 
-            #Product.objects.filter(user=User.objects.get(email=access['email']), id=pk).update(in_cart=False)
+            # Product.objects.filter(user=User.objects.get(email=access['email']), id=pk).update(in_cart=False)
 
             return Response({'message': 'book successfully deleted'}, status.HTTP_200_OK)
         except:
