@@ -116,7 +116,7 @@ class CartDeleteView(APIView):
 
             CartProduct.objects.filter(user=User.objects.get(email=access['email'])).delete()
             Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
-            Product.objects.all().update(in_cart=False)
+            Product.objects.filter(user=User.objects.get(email=access['email'])).update(in_cart=False)
 
             return Response({"message": "Cart deleted succes"}, status.HTTP_200_OK)
         else:
