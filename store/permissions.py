@@ -23,7 +23,15 @@ class FixInCart(BasePermission):
         try:
             access = request.headers['Authorization'].split(' ')[1]
             access = parse_id_token(access)
-            UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']))
+            for i in list(Product.objects.all()):
+                try:
+                    UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
+                                                    product=i)
+                    continue
+                except:
+                    UserProductRelation.objects.create(user=User.objects.get(email=access['email']),
+                                                       product=i, in_cart=False, is_rated=False,
+                                                       rate=None, info=None)
 
             # Product.objects.all().update(user=User.objects.get(email=access['email']))
             # for i in list(Product.objects.all()):
@@ -49,6 +57,6 @@ class FixInCart(BasePermission):
         except:
             # for i in list(Product.objects.all()):
             #     Product.objects.filter(id=i.id).update(in_cart=False)
-            #Product.objects.all().update(in_cart=False)
+            # Product.objects.all().update(in_cart=False)
 
             return True
