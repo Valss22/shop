@@ -135,14 +135,15 @@ class CartObjView(UpdateModelMixin, GenericViewSet, ):
         if CartProduct.objects.filter(user=User.objects.get(email=access['email']),
                                       product=Product.objects.get(id=self.kwargs['book'])).first().copy_count == 1:
 
-            return Response({'message': 'you cant set less than one book'}, status.HTTP_400_BAD_REQUEST)
+            obj = CartProduct.objects.get(user=User.objects.get(email=access['email']), product_id=self.kwargs['book'])
+            return obj
         else:
             CartProduct.objects.filter(user=User.objects.get(email=access['email']),
                                        product=Product.objects.get(id=self.kwargs['book'])).update(
                 copy_count=F('copy_count') - 1)
-
-            Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
-                update(total_price=F('total_price') - Product.objects.get(id=self.kwargs['book']).price)
+            #
+            # Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
+            #     update(total_price=F('total_price') - Product.objects.get(id=self.kwargs['book']).price)
 
             # return Response({'message': 'successful deletion of a one book'}, status.HTTP_200_OK)
 
