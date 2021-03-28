@@ -23,6 +23,8 @@ class FixInCart(BasePermission):
         try:
             access = request.headers['Authorization'].split(' ')[1]
             access = parse_id_token(access)
+            UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']))
+
             # Product.objects.all().update(user=User.objects.get(email=access['email']))
             # for i in list(Product.objects.all()):
             #     i.user.add(User.objects.get(email=access['email']))
