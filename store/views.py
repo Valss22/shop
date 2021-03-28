@@ -119,7 +119,7 @@ class CartDeleteView(APIView):
             Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
             #Product.objects.filter(user=User.objects.get(email=access['email'])).update(in_cart=False)
 
-            return Response({"message": "Cart deleted succes"}, status.HTTP_200_OK)
+            return Response({"message": "Cart deleted success"}, status.HTTP_200_OK)
         else:
             return Response({"message": "Cart is empty"}, status.HTTP_204_NO_CONTENT)
 
@@ -183,7 +183,7 @@ class CartDelObjView(APIView):
             # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
             #                                    product=Product.objects.get(id=pk)).update(in_cart=False)
 
-            Product.objects.filter(user=User.objects.get(email=access['email']), id=pk).update(in_cart=False)
+            #Product.objects.filter(user=User.objects.get(email=access['email']), id=pk).update(in_cart=False)
 
             return Response({'message': 'book successfully deleted'}, status.HTTP_200_OK)
         except:

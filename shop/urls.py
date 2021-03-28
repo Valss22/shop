@@ -20,7 +20,6 @@ urlpatterns = [
                   path('auth/', include('djoser.urls.jwt')),
                   # path to google token
                   path('user/googlelogin/', GoogleView.as_view()),
-
                   path('user/refresh/', RefreshTokenView.as_view()),
                   path('user/logout/', LogoutView.as_view()),
                   path('product/cart/deleteBook/<int:pk>/', CartDelObjView.as_view()),
