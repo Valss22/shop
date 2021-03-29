@@ -28,6 +28,7 @@ class CartProductsSerializer(ModelSerializer):
 
 class ProductRelationSerializer(ModelSerializer):
     info = CartProductsSerializer(read_only=True, )
+    rating = serializers.DecimalField(max_digits=2, decimal_places=1, read_only=True, default=0)
 
     class Meta:
         model = UserProductRelation

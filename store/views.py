@@ -21,8 +21,8 @@ from store.services import *
 
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all().annotate(
-                        rating=Avg('userproductrelation__rate'),
-                        is_rated=F('userproductrelation__is_rated'),)
+        rating=Avg('userproductrelation__rate'),
+        is_rated=F('userproductrelation__is_rated'), )
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -30,7 +30,7 @@ class ProductViewSet(ModelViewSet):
     pagination_class = LargeResultsSetPagination
     search_fields = ['name', 'author']
     ordering_fields = ['price', 'author', ]
-    #permission_classes = [FixInCart]
+    # permission_classes = [FixInCart]
 
 
 class UserProductRateView(UpdateModelMixin, GenericViewSet):
@@ -57,6 +57,7 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
         #                                        user=User.objects.get(email=access['email']),
         #                                        product_id=self.kwargs['book'])).update(is_rated=True)
         obj.is_rated = True
+        obj.rating = set_rating(Product.objects.get(id=self.kwargs['book']))
         obj.save()
         return obj
 
