@@ -20,7 +20,9 @@ from store.services import *
 
 
 class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.all().annotate(
+                        rating=Avg('userproductrelation__rate'),
+                        is_rated=F('userproductrelation__is_rated'),)
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -29,35 +31,6 @@ class ProductViewSet(ModelViewSet):
     search_fields = ['name', 'author']
     ordering_fields = ['price', 'author', ]
     permission_classes = [FixInCart]
-
-    def get_queryset(self):
-        access = self.request.headers['Authorization'].split(' ')[1]
-        access = parse_id_token(access)
-
-        for i in list(Product.objects.all()):
-            try:
-                UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
-                                                product=i)
-                if UserProductRelation.objects.get(user=User.objects.get(email=access['email']),
-                                                   product=i).in_cart:
-
-                    queryset = self.queryset.annotate(
-                        rating=Avg('userproductrelation__rate'),
-                        is_rated=F('userproductrelation__is_rated'),
-                        in_cart=F('true'))
-                else:
-                    queryset = self.queryset.annotate(
-                        rating=Avg('userproductrelation__rate'),
-                        is_rated=F('userproductrelation__is_rated'),
-                        in_cart=F('false'))
-
-            except:
-                queryset = self.queryset.annotate(
-                    rating=Avg('userproductrelation__rate'),
-                    is_rated=F('userproductrelation__is_rated'),
-                    in_cart=F('false'))
-
-        return queryset
 
 
 class UserProductRateView(UpdateModelMixin, GenericViewSet):

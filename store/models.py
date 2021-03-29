@@ -47,9 +47,6 @@ class Product(models.Model):
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
     # in_cart = models.BooleanField(default=False)
     comments = models.ManyToManyField(Feedback, null=True, blank=True)
-    true = models.BooleanField(default=True)
-    false = models.BooleanField(default=False)
-
 
     def __str__(self):
         return f'id({self.id}) {self.name}'
@@ -74,7 +71,6 @@ class UserProductRelation(models.Model):
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    in_cart = models.BooleanField(default=False)
     rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, blank=True)
     is_rated = models.BooleanField(default=False)
     info = models.ForeignKey(CartProduct, null=True, on_delete=models.CASCADE)
@@ -103,6 +99,3 @@ class Cart(models.Model):
 
     def __str__(self):
         return f'{self.owner}({self.owner_id})'
-
-
-
