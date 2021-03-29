@@ -1,4 +1,6 @@
 import time
+
+from decouple import config
 from django.contrib.auth.models import User
 import jwt
 from django.db.models import Avg, F, Case, When
@@ -238,8 +240,7 @@ class GoogleView(APIView):
 
         try:
             idinfo = id_token.verify_oauth2_token(token['id_token'],
-                                                  requests.Request(), '29897898232-727dsvebqsfa7kqrddl0hhbbfalg0vjp.'
-                                                                      'apps.googleusercontent.com')
+                                                  requests.Request(), config('GOOGLE_TOKEN'))
 
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
