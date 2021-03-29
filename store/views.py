@@ -63,8 +63,8 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
 
 
 class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
-    queryset = UserProductRelation.objects.all()
-    serializer_class = ProductRelationSerializer
+    queryset = CartProduct.objects.all()
+    serializer_class = CartProductsSerializer
     permission_classes = [IsAuth, ]
     lookup_field = 'book'
 
@@ -72,7 +72,7 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
         CartProduct.objects.get_or_create(user=User.objects.get(email=access['email']),
-                                          product=Product.objects.get(id=self.kwargs['book']))
+                                                         product=Product.objects.get(id=self.kwargs['book']))
 
         CartProduct.objects.filter(user=User.objects.get(email=access['email']),
                                    product=Product.objects.get(id=self.kwargs['book'])).update(
@@ -86,18 +86,19 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         # Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
         #     update(total_price=F('total_price') + Product.objects.get(id=self.kwargs['book']).price)
 
-        obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
-                                                                 product_id=self.kwargs['book'],
-                                                                 info=CartProduct.objects.get(
-                                                                     user=User.objects.get(email=access['email']),
-                                                                     product_id=self.kwargs['book']))
+        # obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
+        #                                                          product_id=self.kwargs['book'],
+        #                                                          info=CartProduct.objects.get(
+        #                                                              user=User.objects.get(email=access['email']),
+        #                                                              product_id=self.kwargs['book']))
 
         # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
         #                                    product_id=self.kwargs['book']).update(in_cart=True)
 
         # Product.objects.filter(user=User.objects.get(email=access['email']), id=self.kwargs['book']).update(
         #     in_cart=True)
-
+        obj, created = CartProduct.objects.get_or_create(user=User.objects.get(email=access['email']),
+                                                         product=Product.objects.get(id=self.kwargs['book']))
         return obj
 
 
