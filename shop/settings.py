@@ -14,9 +14,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = config('SECRET_KEY')
-SECRET_KEY = config('SECRET_KEY')
-ACCESS_SECRET_KEY = config('ACCESS_SECRET_KEY')
-REFRESH_SECRET_KEY = config('REFRESH_SECRET_KEY')
+SECRET_KEY = 'w=k*rty^f7*d))c$3#&^@hdpurm-+bq^t@_(&w_=erckvv(j%8'
+ACCESS_SECRET_KEY = 'v(qngismmzm7qhgy-2@%*u6!p4ua=4_dox-r5o9amza2@$9+&w'
+REFRESH_SECRET_KEY = 'zrl-kx%q#!&#$2k-bex@t*rp_jbbvs3w4(ao(sa330zrruwlyx'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

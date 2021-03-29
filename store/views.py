@@ -1,6 +1,4 @@
 import time
-
-from decouple import config
 from django.contrib.auth.models import User
 import jwt
 from django.db.models import Avg, F, Case, When
@@ -32,7 +30,7 @@ class ProductViewSet(ModelViewSet):
     pagination_class = LargeResultsSetPagination
     search_fields = ['name', 'author']
     ordering_fields = ['price', 'author', ]
-    permission_classes = [FixInCart]
+    #permission_classes = [FixInCart]
 
 
 class UserProductRateView(UpdateModelMixin, GenericViewSet):
@@ -240,7 +238,8 @@ class GoogleView(APIView):
 
         try:
             idinfo = id_token.verify_oauth2_token(token['id_token'],
-                                                  requests.Request(), config('GOOGLE_TOKEN'))
+                                                  requests.Request(), '29897898232-727dsvebqsfa7kqrddl0hhbbfalg0vjp.'
+                                                                      'apps.googleusercontent.com')
 
             if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                 raise ValueError('Wrong issuer.')
