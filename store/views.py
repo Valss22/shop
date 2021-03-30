@@ -34,14 +34,21 @@ class ProductViewSet(ModelViewSet):
     # permission_classes = [FixInCart]
 
     def retrieve(self, request, *args, **kwargs):
-        access = request.headers['Authorization'].split(' ')[1]
-        access = parse_id_token(access)
-        current_user = User.objects.get(email=access['email'])
-        instance = self.get_object()
-        instance.my_rate = UserProductRelation.objects.get(user=current_user, product_id=instance.id).rate
-        instance.save()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        try:
+            access = request.headers['Authorization'].split(' ')[1]
+            access = parse_id_token(access)
+            current_user = User.objects.get(email=access['email'])
+            instance = self.get_object()
+            instance.my_rate = UserProductRelation.objects.get(user=current_user, product_id=instance.id).rate
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except:
+            instance = self.get_object()
+            instance.my_rate = None
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
 
 
 class UserProductRateView(UpdateModelMixin, GenericViewSet):
