@@ -65,10 +65,7 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
                                           product=Product.objects.get(id=self.kwargs['book']))
 
         obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
-                                                                 product_id=self.kwargs['book'],
-                                                                 info=CartProduct.objects.get(
-                                                                     user=User.objects.get(email=access['email']),
-                                                                     product_id=self.kwargs['book']))
+                                                                 product_id=self.kwargs['book'])
 
         # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']), product_id=self.kwargs['book'],
         #                                    info=CartProduct.objects.get(
