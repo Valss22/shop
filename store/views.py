@@ -23,8 +23,8 @@ from store.services import *
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all().annotate(
         rating=Avg('userproductrelation__rate'),
-        is_rated=F('userproductrelation__is_rated'),
-        my_rate=F('userproductrelation__rate'))
+        is_rated=F('userproductrelation__is_rated'),)
+        #my_rate=F('userproductrelation__rate'))
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
