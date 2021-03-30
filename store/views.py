@@ -4,6 +4,7 @@ import jwt
 from django.db.models import Avg, F, Case, When
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.mixins import UpdateModelMixin
 from rest_framework.views import APIView
@@ -22,7 +23,8 @@ from store.services import *
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all().annotate(
         rating=Avg('userproductrelation__rate'),
-        is_rated=F('userproductrelation__is_rated'), )
+        is_rated=F('userproductrelation__is_rated'),
+        my_rate=F('userproductrelation__rate'))
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -57,7 +59,7 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
         #                                        user=User.objects.get(email=access['email']),
         #                                        product_id=self.kwargs['book'])).update(is_rated=True)
         obj.is_rated = True
-        obj.rating = set_rating(Product.objects.get(id=self.kwargs['book']))
+        # obj.rating = set_rating(Product.objects.get(id=self.kwargs['book']))
         obj.save()
         return obj
 
@@ -72,7 +74,7 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
         CartProduct.objects.get_or_create(user=User.objects.get(email=access['email']),
-                                                         product=Product.objects.get(id=self.kwargs['book']))
+                                          product=Product.objects.get(id=self.kwargs['book']))
 
         CartProduct.objects.filter(user=User.objects.get(email=access['email']),
                                    product=Product.objects.get(id=self.kwargs['book'])).update(

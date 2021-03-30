@@ -13,6 +13,7 @@ router.register(r'product/cart', UserProductCartView)
 router.register(r'product/cart/delete', CartObjView)
 router.register(r'cart', CartViewSet)
 router.register(r'feedback/form', FeedbackFormView)
+
 urlpatterns = [
                   path('admin/', admin.site.urls),
                   # path to djoser end points

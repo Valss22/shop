@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db.models import Avg, F
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
@@ -28,12 +29,19 @@ class CartProductsSerializer(ModelSerializer):
 
 class ProductRelationSerializer(ModelSerializer):
     info = CartProductsSerializer(read_only=True, )
-    rating = serializers.DecimalField(max_digits=2, decimal_places=1, read_only=True, default=0)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProductRelation
         exclude = ('user', 'product',)
         depth = 1
+
+    def get_rating(self, instance):
+        avg = 0
+        for i in list(UserProductRelation.objects.filter(product=instance.product)):
+            avg += i.rate
+        avg /= len(UserProductRelation.objects.filter(product=instance.product))
+        return avg
 
 
 class CommentsSerializer(ModelSerializer):
@@ -45,6 +53,7 @@ class CommentsSerializer(ModelSerializer):
 
 class ProductSerializer(ModelSerializer):
     rating = serializers.DecimalField(max_digits=2, decimal_places=1, read_only=True, default=0)
+    my_rate = serializers.IntegerField(max_value=5, read_only=True)
     reviewers_count = serializers.SerializerMethodField()
     is_rated = serializers.BooleanField(read_only=True, )
     in_cart = serializers.BooleanField(read_only=True, )
