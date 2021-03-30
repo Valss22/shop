@@ -39,7 +39,8 @@ class ProductRelationSerializer(ModelSerializer):
     def get_rating(self, instance):
         avg = 0
         for i in list(UserProductRelation.objects.filter(product=instance.product)):
-            avg += i.rate
+            if type(i.rate) == int:
+                avg += i.rate
         avg /= len(UserProductRelation.objects.filter(product=instance.product))
         return avg
 
