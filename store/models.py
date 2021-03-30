@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -30,6 +32,7 @@ class Feedback(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     comment = models.TextField(max_length=255, null=True)
     username = models.CharField(max_length=50, null=True)
+    date = models.DateField(default=datetime.now())
 
     def __str__(self):
         return f'{self.username}({self.id})'
