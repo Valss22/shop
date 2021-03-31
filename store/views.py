@@ -22,7 +22,7 @@ from store.services import *
 
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all().annotate(
-        rating=Avg('userproductrelation__rate'),)
+        rating=Avg('userproductrelation__rate'), )
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -246,6 +246,90 @@ class FeedbackFormView(UpdateModelMixin, GenericViewSet, ):
 class FeedbackViewSet(ModelViewSet):
     queryset = Feedback.objects.all()
     serializer_class = FeedbackSerializer
+
+
+class FeedbackLikeView(APIView):
+    permission_classes = [IsAuth]
+
+    def patch(self, request, pk):
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+        current_user = User.objects.get(email=access['email'])
+        FeedbackRelation.objects.get_or_create(user=current_user, product_id=pk)
+        responce = Response()
+
+        if FeedbackRelation.objects.get(user=current_user, product_id=pk).like:
+            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(like=False)
+
+            isLiked = FeedbackRelation.objects.get(user=current_user, product_id=pk).like
+            likeCount = FeedbackRelation.objects.filter(like=True).count()
+            dislikeCount = FeedbackRelation.objects.filter(dislike=True).count()
+
+            responce.data = {
+                'isLiked': isLiked,
+                'likeCount': likeCount,
+                'dislikeCount': dislikeCount,
+            }
+
+            return responce
+
+        else:
+            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(like=True)
+            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(dislike=False)
+
+            isLiked = FeedbackRelation.objects.get(user=current_user, product_id=pk).like
+            likeCount = FeedbackRelation.objects.filter(like=True).count()
+            dislikeCount = FeedbackRelation.objects.filter(dislike=True).count()
+
+            responce.data = {
+                'isLiked': isLiked,
+                'likeCount': likeCount,
+                'dislikeCount': dislikeCount,
+            }
+
+            return responce
+
+
+class FeedbackDislikeView(APIView):
+    permission_classes = [IsAuth]
+
+    def patch(self, request, pk):
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+        current_user = User.objects.get(email=access['email'])
+        FeedbackRelation.objects.get_or_create(user=current_user, product_id=pk)
+        responce = Response()
+
+        if FeedbackRelation.objects.get(user=current_user, product_id=pk).dislike:
+            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(dislike=False)
+
+            isDisliked = FeedbackRelation.objects.get(user=current_user, product_id=pk).dislike
+            likeCount = FeedbackRelation.objects.filter(like=True).count()
+            dislikeCount = FeedbackRelation.objects.filter(dislike=True).count()
+
+            responce.data = {
+                'isDisliked': isDisliked,
+                'likeCount': likeCount,
+                'dislikeCount': dislikeCount,
+            }
+
+            return responce
+
+        else:
+            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(dislike=True)
+            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(like=False)
+
+            isDisliked = FeedbackRelation.objects.get(user=current_user, product_id=pk).dislike
+            likeCount = FeedbackRelation.objects.filter(like=True).count()
+            dislikeCount = FeedbackRelation.objects.filter(dislike=True).count()
+
+            responce.data = {
+                'isDisliked': isDisliked,
+                'likeCount': likeCount,
+                'dislikeCount': dislikeCount,
+            }
+
+            return responce
 
 
 class GoogleView(APIView):

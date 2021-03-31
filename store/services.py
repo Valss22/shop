@@ -1,6 +1,7 @@
 from rest_framework.pagination import PageNumberPagination
 import django_filters
-from store.models import Product
+from store.models import *
+from store.serializers import *
 from django.db.models import Avg
 
 from store.models import UserProductRelation
@@ -11,6 +12,21 @@ def set_rating(product):
     product.rating = rating
     product.save()
     return rating
+
+
+# def set_like(current_user, inst, feedbackrelation, pk):
+#     isLiked = FeedbackRelation.objects.get(user=current_user, product_id=pk).like
+#     likeCount = FeedbackRelationSerializer.get_likeCount(inst, feedbackrelation)
+#     dislikeCount = FeedbackRelationSerializer.get_dislikeCount(inst, feedbackrelation)
+#     responce = Response()
+#
+#     responce.data = {
+#         'isLiked': isLiked,
+#         'likeCount': likeCount,
+#         'dislikeCount': dislikeCount,
+#     }
+#
+#     return responce
 
 
 class LargeResultsSetPagination(PageNumberPagination):

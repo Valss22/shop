@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -55,6 +54,16 @@ class Product(models.Model):
         return f'id({self.id}) {self.name}'
 
 
+class FeedbackRelation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.DO_NOTHING)
+    like = models.BooleanField(default=False)
+    dislike = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.user} {self.product}'
+
+
 class CartProduct(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -76,7 +85,8 @@ class UserProductRelation(models.Model):
     product = models.ForeignKey(Product, on_delete=models.DO_NOTHING)
     rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, blank=True)
     is_rated = models.BooleanField(default=False)
-    #info = models.ForeignKey(CartProduct, null=True, on_delete=models.SET_NULL)
+
+    # info = models.ForeignKey(CartProduct, null=True, on_delete=models.SET_NULL)
 
     def save(self, *args, **kwargs):
         from store.services import set_rating

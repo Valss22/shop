@@ -46,17 +46,38 @@ class ProductRelationSerializer(ModelSerializer):
 
 
 class CommentsSerializer(ModelSerializer):
+    likeCount = serializers.SerializerMethodField()
+    dislikeCount = serializers.SerializerMethodField()
+    isLiked = serializers.SerializerMethodField()
+    isDisliked = serializers.SerializerMethodField()
+
     class Meta:
         model = Feedback
         exclude = ('user',)
         depth = 1
+
+    def get_likeCount(self, instance):
+        return FeedbackRelation.objects.filter(like=True).count()
+
+    def get_dislikeCount(self, instance):
+        return FeedbackRelation.objects.filter(dislike=True).count()
+
+    def get_isLiked(self, instance):
+        if FeedbackRelation.objects.get(user=instance.user, product_id=instance.id).like:
+            return True
+        return False
+
+    def get_isDisliked(self, instance):
+        if FeedbackRelation.objects.get(user=instance.user, product_id=instance.id).dislike:
+            return True
+        return False
 
 
 class ProductSerializer(ModelSerializer):
     rating = serializers.DecimalField(max_digits=2, decimal_places=1, read_only=True, default=0)
     my_rate = serializers.IntegerField(max_value=5, read_only=True)
     reviewers_count = serializers.SerializerMethodField()
-    #is_rated = serializers.BooleanField(read_only=True, )
+    # is_rated = serializers.BooleanField(read_only=True, )
     in_cart = serializers.BooleanField(read_only=True, )
     comments = CommentsSerializer(read_only=True, many=True)
 
@@ -89,6 +110,12 @@ class CartSerializer(ModelSerializer):
 
 
 class FeedbackSerializer(ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = '__all__'
+
+
+class FeedbackRelationSerializer(ModelSerializer):
     class Meta:
         model = Feedback
         fields = '__all__'
