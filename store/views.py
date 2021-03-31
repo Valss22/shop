@@ -297,6 +297,7 @@ class FeedbackLikeView(APIView):
 
             responce.data = {
                 'isLiked': isLiked,
+                'isDisliked': True,
                 'likeCount': likeCount,
                 'dislikeCount': dislikeCount,
             }
@@ -313,6 +314,7 @@ class FeedbackLikeView(APIView):
 
             responce.data = {
                 'isLiked': isLiked,
+                'isDisliked': False,
                 'likeCount': likeCount,
                 'dislikeCount': dislikeCount,
             }
@@ -338,6 +340,7 @@ class FeedbackDislikeView(APIView):
             dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
 
             responce.data = {
+                'isLiked': True,
                 'isDisliked': isDisliked,
                 'likeCount': likeCount,
                 'dislikeCount': dislikeCount,
@@ -350,10 +353,11 @@ class FeedbackDislikeView(APIView):
             FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
 
             isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
-            likeCount = FeedbackRelation.objects.filter(like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(dislike=True).count()
+            likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+            dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
 
             responce.data = {
+                'isLiked': False,
                 'isDisliked': isDisliked,
                 'likeCount': likeCount,
                 'dislikeCount': dislikeCount,
