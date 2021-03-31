@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db.models import Avg, F
+from django.http import HttpRequest
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
@@ -63,10 +64,13 @@ class CommentsSerializer(ModelSerializer):
         return FeedbackRelation.objects.filter(comment_id=instance.id, dislike=True).count()
 
     def get_isLiked(self, instance):
+        access = self.context.get('request', None).headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+        currentUser = User.objects.get(email=access['email'])
         try:
-            FeedbackRelation.objects.get(user=instance.user, comment_id=instance.id)
+            FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id)
 
-            if FeedbackRelation.objects.get(user=instance.user, comment_id=instance.id).like:
+            if FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id).like:
                 return True
             return False
 
@@ -74,10 +78,13 @@ class CommentsSerializer(ModelSerializer):
             return False
 
     def get_isDisliked(self, instance):
+        access = self.context.get('request', None).headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+        currentUser = User.objects.get(email=access['email'])
         try:
-            FeedbackRelation.objects.get(user=instance.user, comment_id=instance.id)
+            FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id)
 
-            if FeedbackRelation.objects.get(user=instance.user, comment_id=instance.id).dislike:
+            if FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id).dislike:
                 return True
             return False
         except:
