@@ -12,7 +12,7 @@ router.register(r'product/rate', UserProductRateView)
 router.register(r'product/cart', UserProductCartView)
 router.register(r'product/cart/delete', CartObjView)
 router.register(r'cart', CartViewSet)
-router.register(r'feedback/form', FeedbackFormView)
+#router.register(r'feedback/form', FeedbackFormView)
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
@@ -24,8 +24,9 @@ urlpatterns = [
                   path('user/refresh/', RefreshTokenView.as_view()),
                   path('user/logout/', LogoutView.as_view()),
                   path('product/cart/deleteBook/<int:pk>/', CartDelObjView.as_view()),
-                  path('product/cart/commentLike/<int:pk>/', FeedbackLikeView.as_view()),
-                  path('product/cart/commentDislike/<int:pk>/', FeedbackDislikeView.as_view()),
+                  path('product/comment/like/<int:pk>/', FeedbackLikeView.as_view()),
+                  path('product/comment/dislike/<int:pk>/', FeedbackDislikeView.as_view()),
+                  path('feedback/form/<int:pk>/', FeedbackFormView.as_view()),
                   # path('cart/', CartViewSet.as_view()),
                   path('product/cart/deleteCart/<int:pk>/', CartDeleteView.as_view())
 

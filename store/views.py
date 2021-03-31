@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.mixins import UpdateModelMixin
+from rest_framework.utils import json
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet, ModelViewSet
 from shop import settings
@@ -224,23 +225,50 @@ class CartDelObjView(APIView):
             return Response({'message': 'book doesnt exists'}, status.HTTP_204_NO_CONTENT)
 
 
-class FeedbackFormView(UpdateModelMixin, GenericViewSet, ):
-    queryset = Feedback.objects.all()
-    permission_classes = [IsAuth, ]
-    serializer_class = FeedbackSerializer
-    lookup_field = 'book'
+# class FeedbackFormView(UpdateModelMixin, GenericViewSet, ):
+#     queryset = Feedback.objects.all()
+#     permission_classes = [IsAuth, ]
+#     serializer_class = FeedbackSerializer
+#     lookup_field = 'book'
+#
+#     def get_object(self):
+#         access = self.request.headers['Authorization'].split(' ')[1]
+#         access = parse_id_token(access)
+#
+#         obj, created = Feedback.objects.get_or_create(user=User.objects.get(email=access['email']),
+#                                                       username=User.objects.get(email=access['email']).username, )
+#
+#         Product.objects.get(id=self.kwargs['book']).comments.add(
+#             Feedback.objects.get(user=User.objects.get(email=access['email'])))
+#
+#         return obj
 
-    def get_object(self):
+
+class FeedbackFormView(APIView):
+    permission_classes = [IsAuth]
+
+    def post(self, request, pk):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
 
-        obj, created = Feedback.objects.get_or_create(user=User.objects.get(email=access['email']),
-                                                      username=User.objects.get(email=access['email']).username, )
+        Feedback.objects.create(user=User.objects.get(email=access['email']),
+                                username=User.objects.get(email=access['email']).username,
+                                comment=request.data['comment'])
 
-        Product.objects.get(id=self.kwargs['book']).comments.add(
-            Feedback.objects.get(user=User.objects.get(email=access['email'])))
+        current = Feedback.objects.filter(user=User.objects.get(email=access['email'])).last()
 
-        return obj
+        Product.objects.get(id=pk).comments.add(
+            Feedback.objects.filter(user=User.objects.get(email=access['email'])).last())
+
+        responce = Response()
+        responce.data = {
+            'id': current.id,
+            'comment': current.comment,
+            'username': current.username,
+            'date': current.date
+        }
+
+        return responce
 
 
 class FeedbackViewSet(ModelViewSet):
@@ -255,15 +283,17 @@ class FeedbackLikeView(APIView):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
         current_user = User.objects.get(email=access['email'])
-        FeedbackRelation.objects.get_or_create(user=current_user, product_id=pk)
+        # comment = Feedback.objects.filter(user=current_user).last()
+        FeedbackRelation.objects.get_or_create(user=current_user, comment_id=pk)
         responce = Response()
 
-        if FeedbackRelation.objects.get(user=current_user, product_id=pk).like:
-            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(like=False)
+        if FeedbackRelation.objects.get(user=current_user, comment_id=pk).like:
 
-            isLiked = FeedbackRelation.objects.get(user=current_user, product_id=pk).like
-            likeCount = FeedbackRelation.objects.filter(like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(dislike=True).count()
+            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
+
+            isLiked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).like
+            likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+            dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
 
             responce.data = {
                 'isLiked': isLiked,
@@ -274,12 +304,12 @@ class FeedbackLikeView(APIView):
             return responce
 
         else:
-            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(like=True)
-            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(dislike=False)
+            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=True)
+            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
 
-            isLiked = FeedbackRelation.objects.get(user=current_user, product_id=pk).like
-            likeCount = FeedbackRelation.objects.filter(like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(dislike=True).count()
+            isLiked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).like
+            likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+            dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
 
             responce.data = {
                 'isLiked': isLiked,
@@ -297,15 +327,15 @@ class FeedbackDislikeView(APIView):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
         current_user = User.objects.get(email=access['email'])
-        FeedbackRelation.objects.get_or_create(user=current_user, product_id=pk)
+        FeedbackRelation.objects.get_or_create(user=current_user, comment_id=pk)
         responce = Response()
 
-        if FeedbackRelation.objects.get(user=current_user, product_id=pk).dislike:
-            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(dislike=False)
+        if FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike:
+            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
 
-            isDisliked = FeedbackRelation.objects.get(user=current_user, product_id=pk).dislike
-            likeCount = FeedbackRelation.objects.filter(like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(dislike=True).count()
+            isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
+            likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+            dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
 
             responce.data = {
                 'isDisliked': isDisliked,
@@ -316,10 +346,10 @@ class FeedbackDislikeView(APIView):
             return responce
 
         else:
-            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(dislike=True)
-            FeedbackRelation.objects.filter(user=current_user, product_id=pk).update(like=False)
+            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=True)
+            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
 
-            isDisliked = FeedbackRelation.objects.get(user=current_user, product_id=pk).dislike
+            isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
             likeCount = FeedbackRelation.objects.filter(like=True).count()
             dislikeCount = FeedbackRelation.objects.filter(dislike=True).count()
 

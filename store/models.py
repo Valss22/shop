@@ -56,12 +56,12 @@ class Product(models.Model):
 
 class FeedbackRelation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.DO_NOTHING)
+    comment = models.ForeignKey(Feedback, on_delete=models.CASCADE, null=True)
     like = models.BooleanField(default=False)
     dislike = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.user} {self.product}'
+        return f'{self.user} {self.comment}'
 
 
 class CartProduct(models.Model):

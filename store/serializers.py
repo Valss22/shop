@@ -57,20 +57,31 @@ class CommentsSerializer(ModelSerializer):
         depth = 1
 
     def get_likeCount(self, instance):
-        return FeedbackRelation.objects.filter(like=True).count()
+        return FeedbackRelation.objects.filter(comment_id=instance.id, like=True).count()
 
     def get_dislikeCount(self, instance):
-        return FeedbackRelation.objects.filter(dislike=True).count()
+        return FeedbackRelation.objects.filter(comment_id=instance.id, dislike=True).count()
 
     def get_isLiked(self, instance):
-        if FeedbackRelation.objects.get(user=instance.user, product_id=instance.id).like:
-            return True
-        return False
+        try:
+            FeedbackRelation.objects.get(user=instance.user, comment_id=instance.id)
+
+            if FeedbackRelation.objects.get(user=instance.user, comment_id=instance.id).like:
+                return True
+            return False
+
+        except:
+            return False
 
     def get_isDisliked(self, instance):
-        if FeedbackRelation.objects.get(user=instance.user, product_id=instance.id).dislike:
-            return True
-        return False
+        try:
+            FeedbackRelation.objects.get(user=instance.user, comment_id=instance.id)
+
+            if FeedbackRelation.objects.get(user=instance.user, comment_id=instance.id).dislike:
+                return True
+            return False
+        except:
+            return False
 
 
 class ProductSerializer(ModelSerializer):
