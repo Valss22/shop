@@ -14,19 +14,30 @@ def set_rating(product):
     return rating
 
 
-# def set_like(current_user, inst, feedbackrelation, pk):
-#     isLiked = FeedbackRelation.objects.get(user=current_user, product_id=pk).like
-#     likeCount = FeedbackRelationSerializer.get_likeCount(inst, feedbackrelation)
-#     dislikeCount = FeedbackRelationSerializer.get_dislikeCount(inst, feedbackrelation)
-#     responce = Response()
-#
-#     responce.data = {
-#         'isLiked': isLiked,
-#         'likeCount': likeCount,
-#         'dislikeCount': dislikeCount,
-#     }
-#
-#     return responce
+def set_like(current_user, pk: int, case: bool) -> Response:
+
+    FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=not case)
+    if not case:
+        FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=case)
+
+    if case:
+        likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=case).count()
+        dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=case).count()
+    else:
+        likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=not case).count()
+        dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=not case).count()
+
+    responce = Response()
+
+    responce.data = {
+        'isLiked': not case,
+        'likeCount': likeCount,
+        'dislikeCount': dislikeCount,
+    }
+    if not case:
+        responce.data['isDisliked'] = False
+
+    return responce
 
 
 class LargeResultsSetPagination(PageNumberPagination):

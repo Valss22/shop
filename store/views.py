@@ -276,7 +276,7 @@ class FeedbackViewSet(ModelViewSet):
     serializer_class = FeedbackSerializer
 
 
-class FeedbackLikeView(APIView):
+class FeedbackRateCommentView(APIView):
     permission_classes = [IsAuth]
 
     def patch(self, request, pk):
@@ -287,81 +287,123 @@ class FeedbackLikeView(APIView):
         FeedbackRelation.objects.get_or_create(user=current_user, comment_id=pk)
         responce = Response()
 
-        if FeedbackRelation.objects.get(user=current_user, comment_id=pk).like:
+        if request.data['data'] == 'like':
 
-            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
+            if FeedbackRelation.objects.get(user=current_user, comment_id=pk).like:
 
-            #isLiked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).like
-            likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
+                # FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
+                #
+                # # isLiked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).like
+                # likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+                # dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
+                #
+                # responce.data = {
+                #     'isLiked': False,
+                #     'likeCount': likeCount,
+                #     'dislikeCount': dislikeCount,
+                # }
+                #
+                # return responce
 
-            responce.data = {
-                'isLiked': False,
-                'likeCount': likeCount,
-                'dislikeCount': dislikeCount,
-            }
+                return set_like(current_user, pk, True)
 
-            return responce
+            else:
+                # FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=True)
+                # FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
+                #
+                # # isLiked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).like
+                # likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+                # dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
+                #
+                # responce.data = {
+                #     'isLiked': True,
+                #     'isDisliked': False,
+                #     'likeCount': likeCount,
+                #     'dislikeCount': dislikeCount,
+                # }
+                #
+                # return responce
 
+                return set_like(current_user, pk, False)
+
+        elif request.data['data'] == 'dislike':
+
+            if FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike:
+                FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
+
+                # isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
+                likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+                dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
+
+                responce.data = {
+                    'isDisliked': False,
+                    'likeCount': likeCount,
+                    'dislikeCount': dislikeCount,
+                }
+
+                return responce
+
+            else:
+                FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=True)
+                FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
+
+                # isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
+                likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+                dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
+
+                responce.data = {
+                    'isLiked': False,
+                    'isDisliked': True,
+                    'likeCount': likeCount,
+                    'dislikeCount': dislikeCount,
+                }
+
+                return responce
         else:
-            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=True)
-            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
-
-            #isLiked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).like
-            likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
-
-            responce.data = {
-                'isLiked': True,
-                'isDisliked': False,
-                'likeCount': likeCount,
-                'dislikeCount': dislikeCount,
-            }
-
-            return responce
+            return Response({'message': 'invalid request body'}, status.HTTP_400_BAD_REQUEST)
 
 
-class FeedbackDislikeView(APIView):
-    permission_classes = [IsAuth]
-
-    def patch(self, request, pk):
-        access = self.request.headers['Authorization'].split(' ')[1]
-        access = parse_id_token(access)
-        current_user = User.objects.get(email=access['email'])
-        FeedbackRelation.objects.get_or_create(user=current_user, comment_id=pk)
-        responce = Response()
-
-        if FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike:
-            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
-
-            #isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
-            likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
-
-            responce.data = {
-                'isDisliked': False,
-                'likeCount': likeCount,
-                'dislikeCount': dislikeCount,
-            }
-
-            return responce
-
-        else:
-            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=True)
-            FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
-
-            #isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
-            likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
-
-            responce.data = {
-                'isLiked': False,
-                'isDisliked': True,
-                'likeCount': likeCount,
-                'dislikeCount': dislikeCount,
-            }
-
-            return responce
+# class FeedbackDislikeView(APIView):
+#     permission_classes = [IsAuth]
+#
+#     def patch(self, request, pk):
+#         access = self.request.headers['Authorization'].split(' ')[1]
+#         access = parse_id_token(access)
+#         current_user = User.objects.get(email=access['email'])
+#         FeedbackRelation.objects.get_or_create(user=current_user, comment_id=pk)
+#         responce = Response()
+#
+#         if FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike:
+#             FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
+#
+#             # isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
+#             likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+#             dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
+#
+#             responce.data = {
+#                 'isDisliked': False,
+#                 'likeCount': likeCount,
+#                 'dislikeCount': dislikeCount,
+#             }
+#
+#             return responce
+#
+#         else:
+#             FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=True)
+#             FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
+#
+#             # isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
+#             likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
+#             dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
+#
+#             responce.data = {
+#                 'isLiked': False,
+#                 'isDisliked': True,
+#                 'likeCount': likeCount,
+#                 'dislikeCount': dislikeCount,
+#             }
+#
+#             return responce
 
 
 class GoogleView(APIView):

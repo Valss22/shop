@@ -24,8 +24,8 @@ urlpatterns = [
                   path('user/refresh/', RefreshTokenView.as_view()),
                   path('user/logout/', LogoutView.as_view()),
                   path('product/cart/deleteBook/<int:pk>/', CartDelObjView.as_view()),
-                  path('product/comment/like/<int:pk>/', FeedbackLikeView.as_view()),
-                  path('product/comment/dislike/<int:pk>/', FeedbackDislikeView.as_view()),
+                  path('product/comment/rate/<int:pk>/', FeedbackRateCommentView.as_view()),
+                  #path('product/comment/dislike/<int:pk>/', FeedbackDislikeView.as_view()),
                   path('feedback/form/<int:pk>/', FeedbackFormView.as_view()),
                   # path('cart/', CartViewSet.as_view()),
                   path('product/cart/deleteCart/<int:pk>/', CartDeleteView.as_view())
