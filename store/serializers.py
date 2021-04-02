@@ -64,29 +64,35 @@ class CommentsSerializer(ModelSerializer):
         return FeedbackRelation.objects.filter(comment_id=instance.id, dislike=True).count()
 
     def get_isLiked(self, instance):
-        access = self.context.get('request', None).headers['Authorization'].split(' ')[1]
-        access = parse_id_token(access)
-        currentUser = User.objects.get(email=access['email'])
         try:
-            FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id)
+            access = self.context.get('request', None).headers['Authorization'].split(' ')[1]
+            access = parse_id_token(access)
+            currentUser = User.objects.get(email=access['email'])
+            try:
+                FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id)
 
-            if FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id).like:
-                return True
-            return False
-
+                if FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id).like:
+                    return True
+                return False
+            except:
+                return False
         except:
             return False
 
     def get_isDisliked(self, instance):
-        access = self.context.get('request', None).headers['Authorization'].split(' ')[1]
-        access = parse_id_token(access)
-        currentUser = User.objects.get(email=access['email'])
         try:
-            FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id)
+            access = self.context.get('request', None).headers['Authorization'].split(' ')[1]
+            access = parse_id_token(access)
+            currentUser = User.objects.get(email=access['email'])
 
-            if FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id).dislike:
-                return True
-            return False
+            try:
+                FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id)
+
+                if FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id).dislike:
+                    return True
+                return False
+            except:
+                return False
         except:
             return False
 
