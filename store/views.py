@@ -473,13 +473,6 @@ class GoogleView(APIView):
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
                 refresh = str(refresh)[2:-1]
 
-                UserRefreshToken.objects.create(user=User.objects.get
-                (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
-
-                UserProfile.objects.create(user=User.objects.get
-                (username=parse_id_token(token['id_token'])['name']),
-                                           picture=parse_id_token(token['id_token'])['picture'])
-
                 response = Response()
                 response.set_cookie(key='refresh', value=refresh, httponly=True)
                 response.data = {
@@ -488,6 +481,13 @@ class GoogleView(APIView):
                     'name': parse_id_token(token['id_token'])['name'],
                     'picture': parse_id_token(token['id_token'])['picture'],
                 }
+
+                UserRefreshToken.objects.create(user=User.objects.get
+                (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
+
+                UserProfile.objects.create(user=User.objects.get
+                (username=parse_id_token(token['id_token'])['name']),
+                                           picture=parse_id_token(token['id_token'])['picture'])
 
                 return response
 
@@ -502,6 +502,7 @@ class RefreshTokenView(APIView):
     def post(self, request):
         try:
             data = {'token': request.COOKIES['refresh']}
+            print(1)
         except:
             return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 

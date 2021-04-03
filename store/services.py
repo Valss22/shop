@@ -15,7 +15,6 @@ def set_rating(product):
 
 
 def set_like(current_user, pk: int, case: bool) -> Response:
-
     FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=not case)
     if not case:
         FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=case)
@@ -38,6 +37,18 @@ def set_like(current_user, pk: int, case: bool) -> Response:
         responce.data['isDisliked'] = False
 
     return responce
+
+
+# def set_login_responce(refresh: str, access: str, token: dict):
+#     response = Response()
+#     response.set_cookie(key='refresh', value=refresh, httponly=True)
+#     response.data = {
+#         'access': access,
+#         'email': parse_id_token(token['id_token'])['email'],
+#         'name': parse_id_token(token['id_token'])['name'],
+#         'picture': parse_id_token(token['id_token'])['picture'],
+#     }
+#     return response
 
 
 class LargeResultsSetPagination(PageNumberPagination):

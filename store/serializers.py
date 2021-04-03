@@ -84,7 +84,6 @@ class CommentsSerializer(ModelSerializer):
             access = self.context.get('request', None).headers['Authorization'].split(' ')[1]
             access = parse_id_token(access)
             currentUser = User.objects.get(email=access['email'])
-
             try:
                 FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id)
 
@@ -127,9 +126,8 @@ class CartSerializer(ModelSerializer):
 
     def get_total_price(self, instacne):
         tp = 0
-        for i in list(CartProduct.objects.all()):
-            if i.user == instacne.owner:
-                tp += i.copy_count * i.product.price
+        for i in list(CartProduct.objects.filter(user=instacne.owner)):
+            tp += i.copy_count * i.product.price
         return tp
 
 
