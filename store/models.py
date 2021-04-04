@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.contrib.auth.models import User
 from django.db import models
+from store.validators import *
 
 
 class UserProfile(models.Model):
@@ -49,6 +50,7 @@ class Product(models.Model):
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
     # in_cart = models.BooleanField(default=False)
     comments = models.ManyToManyField(Feedback, null=True, blank=True)
+    sale = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[validate_percent_field])
 
     def __str__(self):
         return f'id({self.id}) {self.name}'

@@ -17,13 +17,14 @@ from store.serializers import *
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.response import Response
-
+import random
 from store.services import *
 
 
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all().annotate(
-        rating=Avg('userproductrelation__rate'), )
+        rating=Avg('userproductrelation__rate'),
+        discountPrice=F('price') - F('sale') * F('price') / 100)
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -31,8 +32,6 @@ class ProductViewSet(ModelViewSet):
     pagination_class = LargeResultsSetPagination
     search_fields = ['name', 'author']
     ordering_fields = ['price', 'author', ]
-
-    # permission_classes = [FixInCart]
 
     def retrieve(self, request, *args, **kwargs):
         try:
@@ -52,6 +51,22 @@ class ProductViewSet(ModelViewSet):
             return Response(serializer.data)
 
 
+class DiscountProductViewSet(ModelViewSet):
+    queryset = Product.objects.filter(sale__gt=0).annotate(
+        rating=Avg('userproductrelation__rate'),
+        discountPrice=F('price') - F('sale') * F('price') / 100)
+
+    serializer_class = ProductSerializer
+
+    idList = [i.id for i in list(queryset)]
+
+    if queryset.count() > 30:
+        while queryset.count() != 30:
+            rand = random.choice(idList)
+            idList.remove(rand)
+            queryset.exclude(id=rand)
+
+
 class UserProductRateView(UpdateModelMixin, GenericViewSet):
     queryset = UserProductRelation.objects.all()
     serializer_class = ProductRelationSerializer
@@ -68,12 +83,8 @@ class UserProductRateView(UpdateModelMixin, GenericViewSet):
         obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
                                                                  product_id=self.kwargs['book'])
 
-        # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']), product_id=self.kwargs['book'],
-        #                                    info=CartProduct.objects.get(
-        #                                        user=User.objects.get(email=access['email']),
-        #                                        product_id=self.kwargs['book'])).update(is_rated=True)
         obj.is_rated = True
-        # obj.rating = set_rating(Product.objects.get(id=self.kwargs['book']))
+
         obj.save()
         return obj
 
@@ -99,20 +110,7 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         Cart.objects.filter(owner=User.objects.get(email=access['email'])).first().products.add(
             CartProduct.objects.filter(user=User.objects.get(email=access['email'])).last()
         )
-        # Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
-        #     update(total_price=F('total_price') + Product.objects.get(id=self.kwargs['book']).price)
 
-        # obj, created = UserProductRelation.objects.get_or_create(user=User.objects.get(email=access['email']),
-        #                                                          product_id=self.kwargs['book'],
-        #                                                          info=CartProduct.objects.get(
-        #                                                              user=User.objects.get(email=access['email']),
-        #                                                              product_id=self.kwargs['book']))
-
-        # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
-        #                                    product_id=self.kwargs['book']).update(in_cart=True)
-
-        # Product.objects.filter(user=User.objects.get(email=access['email']), id=self.kwargs['book']).update(
-        #     in_cart=True)
         obj, created = CartProduct.objects.get_or_create(user=User.objects.get(email=access['email']),
                                                          product=Product.objects.get(id=self.kwargs['book']))
         return obj
@@ -131,17 +129,6 @@ class CartViewSet(ModelViewSet):
         return queryset
 
 
-# class CartViewSet(APIView):
-#     permission_classes = [IsAuth]
-#
-#     def get(self, request, format=None):
-#         access = self.request.headers['Authorization'].split(' ')[1]
-#         access = parse_id_token(access)
-#
-#         queryset = list(Cart.objects.filter(owner=User.objects.get(email=access['email'])))
-#         return Response(queryset)
-
-
 class CartDeleteView(APIView):
     permission_classes = [IsAuth]
 
@@ -152,7 +139,6 @@ class CartDeleteView(APIView):
 
             CartProduct.objects.filter(user=User.objects.get(email=access['email'])).delete()
             Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
-            # Product.objects.filter(user=User.objects.get(email=access['email'])).update(in_cart=False)
 
             return Response({"message": "Cart deleted success"}, status.HTTP_200_OK)
         else:
@@ -178,11 +164,6 @@ class CartObjView(UpdateModelMixin, GenericViewSet, ):
             CartProduct.objects.filter(user=User.objects.get(email=access['email']),
                                        product=Product.objects.get(id=self.kwargs['book'])).update(
                 copy_count=F('copy_count') - 1)
-            #
-            # Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
-            #     update(total_price=F('total_price') - Product.objects.get(id=self.kwargs['book']).price)
-
-            # return Response({'message': 'successful deletion of a one book'}, status.HTTP_200_OK)
 
             obj = CartProduct.objects.get(user=User.objects.get(email=access['email']), product_id=self.kwargs['book'])
 
@@ -200,48 +181,16 @@ class CartDelObjView(APIView):
 
             CartProduct.objects.filter(user=User.objects.get(email=access['email']),
                                        product=Product.objects.get(id=pk)).delete()
-            # Cart.objects.filter(owner=User.objects.get(email=access['email']))
-            #
+
             inst = CartSerializer()
             cart = Cart.objects.filter(owner=User.objects.get(email=access['email'])).first()
-            # inst2 = CartProductsSerializer()
-            # cartProduct2 = CartProduct.objects.get(user=User.objects.get(email=access['email']),
-            #                                        product_id=pk)
-            # copy_price = CartProductsSerializer.get_copy_price(inst2, cartProduct2)
 
             if CartSerializer.get_unique_count(inst, cart) == 0:
                 Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
-            # else:
-            #     Cart.objects.filter(owner=User.objects.get(email=access['email'])). \
-            #         update(total_price=F('total_price') - copy_price)
-
-            # UserProductRelation.objects.filter(user=User.objects.get(email=access['email']),
-            #                                    product=Product.objects.get(id=pk)).update(in_cart=False)
-
-            # Product.objects.filter(user=User.objects.get(email=access['email']), id=pk).update(in_cart=False)
 
             return Response({'message': 'book successfully deleted'}, status.HTTP_200_OK)
         except:
             return Response({'message': 'book doesnt exists'}, status.HTTP_204_NO_CONTENT)
-
-
-# class FeedbackFormView(UpdateModelMixin, GenericViewSet, ):
-#     queryset = Feedback.objects.all()
-#     permission_classes = [IsAuth, ]
-#     serializer_class = FeedbackSerializer
-#     lookup_field = 'book'
-#
-#     def get_object(self):
-#         access = self.request.headers['Authorization'].split(' ')[1]
-#         access = parse_id_token(access)
-#
-#         obj, created = Feedback.objects.get_or_create(user=User.objects.get(email=access['email']),
-#                                                       username=User.objects.get(email=access['email']).username, )
-#
-#         Product.objects.get(id=self.kwargs['book']).comments.add(
-#             Feedback.objects.get(user=User.objects.get(email=access['email'])))
-#
-#         return obj
 
 
 class FeedbackFormView(APIView):
@@ -283,47 +232,14 @@ class FeedbackRateCommentView(APIView):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
         current_user = User.objects.get(email=access['email'])
-        # comment = Feedback.objects.filter(user=current_user).last()
         FeedbackRelation.objects.get_or_create(user=current_user, comment_id=pk)
         responce = Response()
 
         if request.data['data'] == 'like':
 
             if FeedbackRelation.objects.get(user=current_user, comment_id=pk).like:
-
-                # FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
-                #
-                # # isLiked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).like
-                # likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
-                # dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
-                #
-                # responce.data = {
-                #     'isLiked': False,
-                #     'likeCount': likeCount,
-                #     'dislikeCount': dislikeCount,
-                # }
-                #
-                # return responce
-
                 return set_like(current_user, pk, True)
-
             else:
-                # FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=True)
-                # FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
-                #
-                # # isLiked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).like
-                # likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
-                # dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
-                #
-                # responce.data = {
-                #     'isLiked': True,
-                #     'isDisliked': False,
-                #     'likeCount': likeCount,
-                #     'dislikeCount': dislikeCount,
-                # }
-                #
-                # return responce
-
                 return set_like(current_user, pk, False)
 
         elif request.data['data'] == 'dislike':
@@ -331,7 +247,6 @@ class FeedbackRateCommentView(APIView):
             if FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike:
                 FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
 
-                # isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
                 likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
                 dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
 
@@ -347,7 +262,6 @@ class FeedbackRateCommentView(APIView):
                 FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=True)
                 FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
 
-                # isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
                 likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
                 dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
 
@@ -361,49 +275,6 @@ class FeedbackRateCommentView(APIView):
                 return responce
         else:
             return Response({'message': 'invalid request body'}, status.HTTP_400_BAD_REQUEST)
-
-
-# class FeedbackDislikeView(APIView):
-#     permission_classes = [IsAuth]
-#
-#     def patch(self, request, pk):
-#         access = self.request.headers['Authorization'].split(' ')[1]
-#         access = parse_id_token(access)
-#         current_user = User.objects.get(email=access['email'])
-#         FeedbackRelation.objects.get_or_create(user=current_user, comment_id=pk)
-#         responce = Response()
-#
-#         if FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike:
-#             FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=False)
-#
-#             # isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
-#             likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
-#             dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
-#
-#             responce.data = {
-#                 'isDisliked': False,
-#                 'likeCount': likeCount,
-#                 'dislikeCount': dislikeCount,
-#             }
-#
-#             return responce
-#
-#         else:
-#             FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(dislike=True)
-#             FeedbackRelation.objects.filter(user=current_user, comment_id=pk).update(like=False)
-#
-#             # isDisliked = FeedbackRelation.objects.get(user=current_user, comment_id=pk).dislike
-#             likeCount = FeedbackRelation.objects.filter(comment_id=pk, like=True).count()
-#             dislikeCount = FeedbackRelation.objects.filter(comment_id=pk, dislike=True).count()
-#
-#             responce.data = {
-#                 'isLiked': False,
-#                 'isDisliked': True,
-#                 'likeCount': likeCount,
-#                 'dislikeCount': dislikeCount,
-#             }
-#
-#             return responce
 
 
 class GoogleView(APIView):

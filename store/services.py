@@ -39,18 +39,6 @@ def set_like(current_user, pk: int, case: bool) -> Response:
     return responce
 
 
-# def set_login_responce(refresh: str, access: str, token: dict):
-#     response = Response()
-#     response.set_cookie(key='refresh', value=refresh, httponly=True)
-#     response.data = {
-#         'access': access,
-#         'email': parse_id_token(token['id_token'])['email'],
-#         'name': parse_id_token(token['id_token'])['name'],
-#         'picture': parse_id_token(token['id_token'])['picture'],
-#     }
-#     return response
-
-
 class LargeResultsSetPagination(PageNumberPagination):
     page_size = 21
     page_size_query_param = 'page_size'

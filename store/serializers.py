@@ -29,7 +29,6 @@ class CartProductsSerializer(ModelSerializer):
 
 
 class ProductRelationSerializer(ModelSerializer):
-    info = CartProductsSerializer(read_only=True, )
     rating = serializers.SerializerMethodField()
 
     class Meta:
@@ -103,6 +102,7 @@ class ProductSerializer(ModelSerializer):
     # is_rated = serializers.BooleanField(read_only=True, )
     in_cart = serializers.BooleanField(read_only=True, )
     comments = CommentsSerializer(read_only=True, many=True)
+    discountPrice = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
 
     class Meta:
         model = Product

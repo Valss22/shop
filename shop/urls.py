@@ -12,6 +12,7 @@ router.register(r'product/rate', UserProductRateView)
 router.register(r'product/cart', UserProductCartView)
 router.register(r'product/cart/delete', CartObjView)
 router.register(r'cart', CartViewSet)
+router.register(r'discount', DiscountProductViewSet)
 #router.register(r'feedback/form', FeedbackFormView)
 
 urlpatterns = [
@@ -28,7 +29,7 @@ urlpatterns = [
                   #path('product/comment/dislike/<int:pk>/', FeedbackDislikeView.as_view()),
                   path('feedback/form/<int:pk>/', FeedbackFormView.as_view()),
                   # path('cart/', CartViewSet.as_view()),
-                  path('product/cart/deleteCart/<int:pk>/', CartDeleteView.as_view())
+                  path('product/cart/deleteCart/<int:pk>/', CartDeleteView.as_view()),
 
                   # path to our account's app endpoints
                   # path('api/accounts/', include('accounts.urls'))
