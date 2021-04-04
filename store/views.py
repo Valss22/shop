@@ -23,8 +23,8 @@ from store.services import *
 
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all().annotate(
-        rating=Avg('userproductrelation__rate'),
-        discountPrice=F('price') - F('sale') * F('price') / 100)
+        rating=Avg('userproductrelation__rate'),)
+        #discountPrice=F('price') - F('sale') * F('price') / 100)
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -51,20 +51,20 @@ class ProductViewSet(ModelViewSet):
             return Response(serializer.data)
 
 
-class DiscountProductViewSet(ModelViewSet):
-    queryset = Product.objects.filter(sale__gt=0).annotate(
-        rating=Avg('userproductrelation__rate'),
-        discountPrice=F('price') - F('sale') * F('price') / 100)
-
-    serializer_class = ProductSerializer
-
-    idList = [i.id for i in list(queryset)]
-
-    if queryset.count() > 30:
-        while queryset.count() != 30:
-            rand = random.choice(idList)
-            idList.remove(rand)
-            queryset.exclude(id=rand)
+# class DiscountProductViewSet(ModelViewSet):
+#     queryset = Product.objects.filter(sale__gt=0).annotate(
+#         rating=Avg('userproductrelation__rate'),
+#         discountPrice=F('price') - F('sale') * F('price') / 100)
+#
+#     serializer_class = ProductSerializer
+#
+#     idList = [i.id for i in list(queryset)]
+#
+#     if queryset.count() > 30:
+#         while queryset.count() != 30:
+#             rand = random.choice(idList)
+#             idList.remove(rand)
+#             queryset.exclude(id=rand)
 
 
 class UserProductRateView(UpdateModelMixin, GenericViewSet):
