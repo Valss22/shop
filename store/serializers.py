@@ -30,6 +30,7 @@ class CartProductsSerializer(ModelSerializer):
 
 class ProductRelationSerializer(ModelSerializer):
     rating = serializers.SerializerMethodField()
+    reviewersCount = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProductRelation
@@ -43,6 +44,9 @@ class ProductRelationSerializer(ModelSerializer):
                 avg += i.rate
         avg /= len(UserProductRelation.objects.filter(product=instance.product))
         return avg
+
+    def get_reviewersCount(self, instance):
+        return UserProductRelation.objects.filter(product=instance.product, ).count()
 
 
 class CommentsSerializer(ModelSerializer):
