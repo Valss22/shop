@@ -22,7 +22,6 @@ class UserRefreshToken(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=50, verbose_name='Название категории')
-    slug = models.SlugField(unique=True)
 
     def __str__(self):
         return f'id({self.id}) {self.name}'
