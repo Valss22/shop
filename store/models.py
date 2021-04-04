@@ -39,18 +39,15 @@ class Feedback(models.Model):
 
 
 class Product(models.Model):
-    # user = models.ManyToManyField(User, related_name='UserProduct', null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=50)
     author = models.CharField(max_length=50, null=True)
-    slug = models.SlugField(unique=True, null=True)
     image = models.ImageField(null=True, upload_to='images/')
     description = models.TextField(null=True, max_length=255)
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
-    # in_cart = models.BooleanField(default=False)
     comments = models.ManyToManyField(Feedback, null=True, blank=True)
-    #sale = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[validate_percent_field])
+    sale = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[validate_percent_field])
 
     def __str__(self):
         return f'id({self.id}) {self.name}'
