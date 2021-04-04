@@ -12,7 +12,7 @@ router.register(r'product/rate', UserProductRateView)
 router.register(r'product/cart', UserProductCartView)
 router.register(r'product/cart/delete', CartObjView)
 router.register(r'cart', CartViewSet)
-#router.register(r'discount', DiscountProductViewSet)
+router.register(r'discount', DiscountProductViewSet)
 #router.register(r'feedback/form', FeedbackFormView)
 
 urlpatterns = [
