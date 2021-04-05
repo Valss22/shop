@@ -143,13 +143,14 @@ class CartSerializer(ModelSerializer):
     def get_totalDiscountPrice(self, instance):
         tdp = 0
         count = 0
-        for i in list(CartProduct.objects.filter(user=instance.owner)):
+        arr = list(CartProduct.objects.filter(user=instance.owner))
+        for i in arr:
             if i.product.discountPrice == None:
                 continue
             tdp += i.copy_count * i.product.discountPrice
-            if i.product.sale == 0:
+            if i.product.sale == None:
                 count += 1
-        if count == len(list(CartProduct.objects.filter(user=instance.owner))):
+        if count == len(arr):
             return None
         return tdp
 
