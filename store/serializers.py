@@ -145,10 +145,11 @@ class CartSerializer(ModelSerializer):
         count = 0
         arr = list(CartProduct.objects.filter(user=instance.owner))
         for i in arr:
-            if i.product.discountPrice == None:
-                continue
-            tdp += i.copy_count * i.product.discountPrice
-            if i.product.sale == None:
+            if i.product.discountPrice is None:
+                tdp += i.copy_count * i.product.price
+            else:
+                tdp += i.copy_count * i.product.discountPrice
+            if i.product.sale is None:
                 count += 1
         if count == len(arr):
             return None
