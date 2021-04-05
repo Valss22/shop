@@ -23,7 +23,9 @@ from store.services import *
 
 class ProductViewSet(ModelViewSet):
     queryset = Product.objects.all().annotate(
-        rating=Avg('userproductrelation__rate'),)
+        rating=Avg('userproductrelation__rate'), )
+
+    Product.objects.all().update(discountPrice=F('price') - F('sale') * F('price') / 100)
 
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -52,7 +54,7 @@ class ProductViewSet(ModelViewSet):
 
 class DiscountProductViewSet(ModelViewSet):
     queryset = Product.objects.filter(sale__gt=0).annotate(
-        rating=Avg('userproductrelation__rate'),)
+        rating=Avg('userproductrelation__rate'), )
 
     serializer_class = ProductSerializer
 
