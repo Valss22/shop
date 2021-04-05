@@ -123,16 +123,23 @@ class ProductSerializer(ModelSerializer):
 
 class CartSerializer(ModelSerializer):
     products = CartProductsSerializer(read_only=True, many=True)
-    unique_count = serializers.SerializerMethodField()
+    # unique_count = serializers.SerializerMethodField()
     total_price = serializers.SerializerMethodField()
     totalDiscountPrice = serializers.SerializerMethodField()
+    totalCount = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
         fields = '__all__'
 
-    def get_unique_count(self, instance):
-        return Cart.objects.filter(owner=instance.owner).first().products.count()
+    def get_totalCount(self, instance):
+        tc = 0
+        for i in list(CartProduct.objects.filter(user=instance.owner)):
+            tc += i.copy_count
+        return tc
+
+    # def get_unique_count(self, instance):
+    #     return Cart.objects.filter(owner=instance.owner).first().products.count()
 
     def get_total_price(self, instacne):
         tp = 0
