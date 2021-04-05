@@ -17,6 +17,7 @@ class CategorySerializer(ModelSerializer):
 
 class CartProductsSerializer(ModelSerializer):
     copy_price = serializers.SerializerMethodField()
+    copyDiscountPrice = serializers.SerializerMethodField()
 
     class Meta:
         model = CartProduct
@@ -24,8 +25,14 @@ class CartProductsSerializer(ModelSerializer):
         depth = 1
 
     def get_copy_price(self, instance):
-        return CartProduct.objects.filter(user=instance.user, product=instance.product).first().copy_count * \
+        return CartProduct.objects.get(user=instance.user, product=instance.product).copy_count * \
                Product.objects.get(id=instance.product.id).price
+
+    def get_copyDiscountPrice(self, instance):
+        discountPrice = Product.objects.get(id=instance.product.id).discountPrice
+        if discountPrice == None:
+            return None
+        return CartProduct.objects.get(user=instance.user, product=instance.product).copy_count * discountPrice
 
 
 class ProductRelationSerializer(ModelSerializer):
@@ -103,10 +110,8 @@ class ProductSerializer(ModelSerializer):
     rating = serializers.DecimalField(max_digits=2, decimal_places=1, read_only=True, default=0)
     my_rate = serializers.IntegerField(max_value=5, read_only=True)
     reviewers_count = serializers.SerializerMethodField()
-    # is_rated = serializers.BooleanField(read_only=True, )
     in_cart = serializers.BooleanField(read_only=True, )
     comments = CommentsSerializer(read_only=True, many=True)
-    discountPrice = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
 
     class Meta:
         model = Product
@@ -120,6 +125,7 @@ class CartSerializer(ModelSerializer):
     products = CartProductsSerializer(read_only=True, many=True)
     unique_count = serializers.SerializerMethodField()
     total_price = serializers.SerializerMethodField()
+    totalDiscountPrice = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
@@ -133,6 +139,16 @@ class CartSerializer(ModelSerializer):
         for i in list(CartProduct.objects.filter(user=instacne.owner)):
             tp += i.copy_count * i.product.price
         return tp
+
+    def get_totalDiscountPrice(self, instance):
+        tdp = 0
+        for i in list(CartProduct.objects.filter(user=instance.owner)):
+            if i.product.discountPrice == None:
+                continue
+            tdp += i.copy_count * i.product.discountPrice
+        if tdp == 0:
+            return None
+        return tdp
 
 
 class FeedbackSerializer(ModelSerializer):

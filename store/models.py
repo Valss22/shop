@@ -47,6 +47,7 @@ class Product(models.Model):
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
     comments = models.ManyToManyField(Feedback, null=True, blank=True)
     sale = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[validate_percent_field])
+    discountPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f'id({self.id}) {self.name}'
