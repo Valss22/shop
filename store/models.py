@@ -41,7 +41,7 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=50)
     author = models.CharField(max_length=50, null=True)
-    image = models.ImageField(null=True, upload_to='images/')
+    image = models.TextField(null=True, max_length=500)
     description = models.TextField(null=True, max_length=255)
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
