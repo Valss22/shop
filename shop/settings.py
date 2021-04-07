@@ -32,12 +32,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'debug_toolbar',
+    'debug_toolbar',
     'store',
     'rest_framework',
     'djoser',
     'corsheaders',
-    'django_filters'
+    #'django_filters'
 ]
 
 CORS_ALLOWED_ORIGINS = [

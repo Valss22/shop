@@ -52,6 +52,7 @@ class CharFilterinField(django_filters.BaseInFilter, django_filters.CharFilter):
 class ProductFilter(django_filters.FilterSet):
     category = CharFilterinField(field_name='category__name', lookup_expr='in')
     price = django_filters.RangeFilter()
+    sale = django_filters.RangeFilter()
 
     class Meta:
         model = Product

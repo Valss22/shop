@@ -1,19 +1,11 @@
 import time
-from django.contrib.auth.models import User
-import jwt
-from django.db.models import Avg, F, Case, When
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
-from rest_framework.decorators import api_view
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.mixins import UpdateModelMixin
-from rest_framework.utils import json
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet, ModelViewSet
-from shop import settings
-from store.models import *
 from store.permissions import *
-from store.serializers import *
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework.response import Response
@@ -21,11 +13,11 @@ import random
 from store.services import *
 
 
-class ProductViewSet(ModelViewSet):
+class ProductViewSet(ReadOnlyModelViewSet):
     queryset = Product.objects.all().annotate(
         rating=Avg('userproductrelation__rate'), )
 
-    serializer_class = ProductSerializer
+    serializer_class = ProductSerializerAll
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ProductFilter
     pagination_class = LargeResultsSetPagination
@@ -33,6 +25,8 @@ class ProductViewSet(ModelViewSet):
     ordering_fields = ['price', 'author', ]
 
     def retrieve(self, request, *args, **kwargs):
+        self.serializer_class = ProductSerializerRetrieve
+
         try:
             access = request.headers['Authorization'].split(' ')[1]
             access = parse_id_token(access)
@@ -54,7 +48,7 @@ class DiscountProductViewSet(ModelViewSet):
     queryset = Product.objects.filter(sale__gt=0).annotate(
         rating=Avg('userproductrelation__rate'), )
 
-    serializer_class = ProductSerializer
+    serializer_class = ProductSerializerAll
 
     idList = [i.id for i in list(queryset)]
 
@@ -183,7 +177,7 @@ class CartDelObjView(APIView):
             inst = CartSerializer()
             cart = Cart.objects.filter(owner=User.objects.get(email=access['email'])).first()
 
-            if CartSerializer.get_unique_count(inst, cart) == 0:
+            if CartSerializer.get_totalCount(inst, cart) == 0:
                 Cart.objects.filter(owner=User.objects.get(email=access['email'])).delete()
 
             return Response({'message': 'book successfully deleted'}, status.HTTP_200_OK)
