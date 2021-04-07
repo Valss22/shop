@@ -42,7 +42,7 @@ class Product(models.Model):
     name = models.CharField(max_length=50)
     author = models.CharField(max_length=50, null=True)
     image = models.TextField(null=True, max_length=500)
-    description = models.TextField(null=True, max_length=255)
+    description = models.TextField(null=True, max_length=500)
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
     comments = models.ManyToManyField(Feedback, null=True, blank=True)
