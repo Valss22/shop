@@ -414,7 +414,7 @@ class RefreshTokenView(APIView):
         }
 
         try:
-            jwt.decode(str(data['token'])[2:-1], settings.REFRESH_SECRET_KEY, algorithms='HS256')
+            jwt.decode(data['token'], settings.REFRESH_SECRET_KEY, algorithms='HS256')
         except:
             return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
 
