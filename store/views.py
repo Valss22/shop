@@ -358,7 +358,8 @@ class GoogleView(APIView):
                     (email=parse_id_token(token['id_token'])['email']))
 
                     UserProfile.objects.create(user=User.objects.get
-                    (email=parse_id_token(token['id_token'])['email']))
+                    (email=parse_id_token(token['id_token'])['email']),
+                                               picture=parse_id_token(token['id_token'])['picture'])
                 except:
                     pass
 
@@ -386,7 +387,8 @@ class GoogleView(APIView):
                 (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
 
                 UserProfile.objects.create(user=User.objects.get
-                (username=parse_id_token(token['id_token'])['name']))
+                (username=parse_id_token(token['id_token'])['name']),
+                                           picture=parse_id_token(token['id_token'])['picture'])
 
                 return response
 
@@ -423,7 +425,7 @@ class RefreshTokenView(APIView):
 
         try:
             UserRefreshToken.objects.get(
-                user=User.objects.get(email='deger.begerrr@gmail.com'))
+                user=User.objects.get(email=refreshEmail))
 
             if UserRefreshToken.objects.get(
                     user=User.objects.get(email=refreshEmail)).refresh == \

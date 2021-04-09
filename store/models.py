@@ -14,6 +14,7 @@ class UserOrderData(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile", null=True)
+    picture = models.TextField(max_length=500, null=True)
     orderData = models.ManyToManyField(UserOrderData)
 
     def __str__(self):
