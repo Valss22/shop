@@ -454,7 +454,7 @@ class RefreshTokenView(APIView):
                 return Response({'message': 'Auth failed3'}, status=status.HTTP_401_UNAUTHORIZED)
         except:
             return Response({'message': 'Auth failed4',
-                             'refresh': request.COOKIES['refresh']}, status=status.HTTP_401_UNAUTHORIZED)
+                             'refresh': refreshEmail}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
