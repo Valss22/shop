@@ -344,21 +344,21 @@ class GoogleView(APIView):
 
                 try:
                     UserRefreshToken.objects.get(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name']))
+                    (email=parse_id_token(token['id_token'])['email']))
 
                     UserRefreshToken.objects.filter(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name'])).update(refresh=refresh)
+                    (email=parse_id_token(token['id_token'])['email'])).update(refresh=refresh)
 
                 except:
                     UserRefreshToken.objects.create(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
+                    (email=parse_id_token(token['id_token'])['email']), refresh=refresh)
 
                 try:
                     UserProfile.objects.get(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name']))
+                    (email=parse_id_token(token['id_token'])['email']))
 
                     UserProfile.objects.create(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name']))
+                    (email=parse_id_token(token['id_token'])['email']))
                 except:
                     pass
 
@@ -450,7 +450,8 @@ class RefreshTokenView(APIView):
             else:
                 return Response({'message': 'Auth failed3'}, status=status.HTTP_401_UNAUTHORIZED)
         except:
-            return Response({'message': 'Auth failed4'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'message': 'Auth failed4',
+                             'refresh':request.COOKIES['refresh']}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
