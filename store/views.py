@@ -399,7 +399,7 @@ class RefreshTokenView(APIView):
 
     def post(self, request):
         try:
-            data = {'token': request.COOKIES['refresh']}
+            data = {'token': request.COOKIES['refresh'][2:-1]}
         except:
             return Response({'message': 'Auth failed1'}, status=status.HTTP_401_UNAUTHORIZED)
 
