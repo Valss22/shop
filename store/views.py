@@ -331,7 +331,6 @@ class GoogleView(APIView):
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
-                refresh = str(refresh)[2:-1]
 
                 response = Response()
                 response.set_cookie(key='refresh', value=refresh, httponly=True)
@@ -371,7 +370,7 @@ class GoogleView(APIView):
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
 
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
-                refresh = str(refresh)[2:-1]
+                #refresh = str(refresh)[2:-1]
 
                 response = Response()
                 response.set_cookie(key='refresh', value=refresh, httponly=True)
@@ -429,7 +428,7 @@ class RefreshTokenView(APIView):
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
 
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
-                refresh = str(refresh)[2:-1]
+                #refresh = str(refresh)[2:-1]
 
                 UserRefreshToken.objects.filter(
                     user=User.objects.get(email=parse_id_token(data['token'])['email'])).update(refresh=refresh)
