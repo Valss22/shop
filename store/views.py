@@ -400,10 +400,10 @@ class RefreshTokenView(APIView):
 
     def post(self, request):
 
-        refreshEmail = parse_id_token(request.COOKIES['refresh'][2:-1])['email']
+        refreshEmail = parse_id_token(request.COOKIES['refresh'])['email']
 
         try:
-            data = {'token': request.COOKIES['refresh'][2:-1]}
+            data = {'token': request.COOKIES['refresh']}
         except:
             return Response({'message': 'Auth failed1'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -454,7 +454,7 @@ class RefreshTokenView(APIView):
                 return Response({'message': 'Auth failed3'}, status=status.HTTP_401_UNAUTHORIZED)
         except:
             return Response({'message': 'Auth failed4',
-                             'refresh': request.COOKIES['refresh'][2:-1]}, status=status.HTTP_401_UNAUTHORIZED)
+                             'refresh': request.COOKIES['refresh']}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
