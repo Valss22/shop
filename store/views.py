@@ -370,7 +370,7 @@ class GoogleView(APIView):
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
 
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
-                #refresh = str(refresh)[2:-1]
+                # refresh = str(refresh)[2:-1]
 
                 response = Response()
                 response.set_cookie(key='refresh', value=refresh, httponly=True)
@@ -398,6 +398,9 @@ class GoogleView(APIView):
 class RefreshTokenView(APIView):
 
     def post(self, request):
+
+        refreshEmail = parse_id_token(request.COOKIES['refresh'][2:-1])['email']
+
         try:
             data = {'token': request.COOKIES['refresh'][2:-1]}
         except:
@@ -419,19 +422,19 @@ class RefreshTokenView(APIView):
 
         try:
             UserRefreshToken.objects.get(
-                user=User.objects.get(email=parse_id_token(request.COOKIES['refresh'])['email']))
+                user=User.objects.get(email=refreshEmail))
 
             if UserRefreshToken.objects.get(
-                    user=User.objects.get(email=parse_id_token(request.COOKIES['refresh'])['email'])).refresh == \
+                    user=User.objects.get(email=refreshEmail)).refresh == \
                     request.COOKIES['refresh']:
 
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
 
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
-                #refresh = str(refresh)[2:-1]
+                refresh = str(refresh)[2:-1]
 
                 UserRefreshToken.objects.filter(
-                    user=User.objects.get(email=parse_id_token(data['token'])['email'])).update(refresh=refresh)
+                    user=User.objects.get(email=refreshEmail)).update(refresh=refresh)
 
                 response = Response()
 
@@ -439,10 +442,10 @@ class RefreshTokenView(APIView):
 
                 response.data = {
                     'access': access,
-                    'email': User.objects.get(email=parse_id_token(data['token'])['email']).email,
-                    'name': User.objects.get(email=parse_id_token(data['token'])['email']).username,
+                    'email': User.objects.get(email=refreshEmail).email,
+                    'name': User.objects.get(email=refreshEmail).username,
                     'picture': UserProfile.objects.get(
-                        user=User.objects.get(email=parse_id_token(data['token'])['email'])).picture,
+                        user=User.objects.get(email=refreshEmail)).picture,
                 }
 
                 return response
@@ -450,7 +453,7 @@ class RefreshTokenView(APIView):
                 return Response({'message': 'Auth failed3'}, status=status.HTTP_401_UNAUTHORIZED)
         except:
             return Response({'message': 'Auth failed4',
-                             'refresh':request.COOKIES['refresh']}, status=status.HTTP_401_UNAUTHORIZED)
+                             'refresh': request.COOKIES['refresh']}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
