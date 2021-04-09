@@ -269,6 +269,44 @@ class FeedbackRateCommentView(APIView):
             return Response({'message': 'invalid request body'}, status.HTTP_400_BAD_REQUEST)
 
 
+class UserProfileViewSet(ReadOnlyModelViewSet):
+    queryset = UserOrderData.objects.all()
+    serializer_class = UserOrderDateSerializer
+    permission_classes = [IsAuth]
+
+
+class UserProfileFormView(APIView):
+    permission_classes = [IsAuth]
+
+    def put(self, request):
+        fields = ['name', 'email', 'phone', 'postalCode']
+        dataFields = []
+
+        for key, value in request.data.items():
+            dataFields.append(key)
+
+        if dataFields == fields:
+
+            access = self.request.headers['Authorization'].split(' ')[1]
+            access = parse_id_token(access)
+            currentUser = User.objects.get(email=access['email'])
+            orderData = UserOrderData.objects
+            name = request.data['name']
+            email = request.data['email']
+            phone = request.data['phone']
+            postalCode = request.data['postalCode']
+
+            try:
+                orderData.get(user=currentUser)
+                orderData.filter(user=currentUser).update(name=name, email=email, phone=phone, postalCode=postalCode)
+            except:
+                orderData.create(user=currentUser, name=name, email=email, phone=phone, postalCode=postalCode)
+
+            return Response({'message': 'success'}, status.HTTP_200_OK)
+
+        return Response({'message': 'validation error'}, status.HTTP_400_BAD_REQUEST)
+
+
 class GoogleView(APIView):
 
     def post(self, request):
@@ -320,8 +358,7 @@ class GoogleView(APIView):
                     (username=parse_id_token(token['id_token'])['name']))
 
                     UserProfile.objects.create(user=User.objects.get
-                    (username=parse_id_token(token['id_token'])['name']),
-                                               picture=parse_id_token(token['id_token'])['picture'])
+                    (username=parse_id_token(token['id_token'])['name']))
                 except:
                     pass
 
@@ -349,8 +386,7 @@ class GoogleView(APIView):
                 (username=parse_id_token(token['id_token'])['name']), refresh=refresh)
 
                 UserProfile.objects.create(user=User.objects.get
-                (username=parse_id_token(token['id_token'])['name']),
-                                           picture=parse_id_token(token['id_token'])['picture'])
+                (username=parse_id_token(token['id_token'])['name']))
 
                 return response
 

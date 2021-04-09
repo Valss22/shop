@@ -181,3 +181,17 @@ class FeedbackRelationSerializer(ModelSerializer):
     class Meta:
         model = Feedback
         fields = '__all__'
+
+
+class UserOrderDateSerializer(ModelSerializer):
+    class Meta:
+        model = UserOrderData
+        exclude = ('id', 'user')
+
+
+class UserProfileSerializer(ModelSerializer):
+    orderData = UserOrderDateSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = UserProfile
+        exclude = ('user',)

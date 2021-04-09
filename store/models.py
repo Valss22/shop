@@ -4,9 +4,17 @@ from django.db import models
 from store.validators import *
 
 
+class UserOrderData(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50, null=True)
+    email = models.EmailField(null=True)
+    phone = models.CharField(max_length=15, null=True)
+    postalCode = models.CharField(max_length=6, null=True)
+
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile", null=True)
-    picture = models.CharField(max_length=500)
+    orderData = models.ManyToManyField(UserOrderData)
 
     def __str__(self):
         return f'id({self.id}) {self.user}'
@@ -46,7 +54,8 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     reviewers = models.ManyToManyField(User, through='UserProductRelation')
     comments = models.ManyToManyField(Feedback, null=True, blank=True)
-    sale = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, validators=[validate_percent_field])
+    sale = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True,
+                               validators=[validate_percent_field])
     discountPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
 
     def __str__(self):

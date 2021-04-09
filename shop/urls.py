@@ -13,6 +13,9 @@ router.register(r'product/cart', UserProductCartView)
 router.register(r'product/cart/delete', CartObjView)
 router.register(r'cart', CartViewSet)
 router.register(r'discount', DiscountProductViewSet)
+router.register(r'profile', UserProfileViewSet)
+#router.register(r'profile/form', UserProfileFormView)
+
 # router.register(r'feedback/form', FeedbackFormView)
 
 urlpatterns = [
@@ -30,6 +33,7 @@ urlpatterns = [
                   path('feedback/form/<int:pk>/', FeedbackFormView.as_view()),
                   # path('cart/', CartViewSet.as_view()),
                   path('product/cart/deleteCart/<int:pk>/', CartDeleteView.as_view()),
+                  path('profile/form/', UserProfileFormView.as_view()),
 
                   # path to our account's app endpoints
                   # path('api/accounts/', include('accounts.urls'))
@@ -37,9 +41,9 @@ urlpatterns = [
 
 urlpatterns += router.urls
 
-# from django.conf import settings
-# from django.urls import include, path
-#
+from django.conf import settings
+from django.urls import include, path
+
 # if settings.DEBUG:
 #     import debug_toolbar
 #
