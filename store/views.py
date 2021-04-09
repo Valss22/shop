@@ -331,6 +331,7 @@ class GoogleView(APIView):
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
+                refresh = str(refresh)[2:-1]
 
                 response = Response()
                 response.set_cookie(key='refresh', value=refresh, httponly=True)
@@ -370,7 +371,7 @@ class GoogleView(APIView):
                 access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY, algorithm='HS256')
 
                 refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
-                # refresh = str(refresh)[2:-1]
+                refresh = str(refresh)[2:-1]
 
                 response = Response()
                 response.set_cookie(key='refresh', value=refresh, httponly=True)
@@ -453,7 +454,7 @@ class RefreshTokenView(APIView):
                 return Response({'message': 'Auth failed3'}, status=status.HTTP_401_UNAUTHORIZED)
         except:
             return Response({'message': 'Auth failed4',
-                             'refresh': request.COOKIES['refresh']}, status=status.HTTP_401_UNAUTHORIZED)
+                             'refresh': request.COOKIES['refresh'][2:-1]}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
