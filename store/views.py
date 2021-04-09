@@ -402,7 +402,7 @@ class RefreshTokenView(APIView):
         try:
             data = {'token': request.COOKIES['refresh']}
         except:
-            return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'message': 'Auth failed1'}, status=status.HTTP_401_UNAUTHORIZED)
 
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
@@ -416,7 +416,7 @@ class RefreshTokenView(APIView):
         try:
             jwt.decode(data['token'], settings.REFRESH_SECRET_KEY, algorithms='HS256')
         except:
-            return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'message': 'Auth failed2'}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
             UserRefreshToken.objects.get(
@@ -448,9 +448,9 @@ class RefreshTokenView(APIView):
 
                 return response
             else:
-                return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({'message': 'Auth failed3'}, status=status.HTTP_401_UNAUTHORIZED)
         except:
-            return Response({'message': 'Auth failed'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'message': 'Auth failed4'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
