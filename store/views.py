@@ -423,7 +423,7 @@ class RefreshTokenView(APIView):
 
         try:
             UserRefreshToken.objects.get(
-                user=User.objects.get(email=refreshEmail))
+                user=User.objects.get(email='deger.begerrr@gmail.com'))
 
             if UserRefreshToken.objects.get(
                     user=User.objects.get(email=refreshEmail)).refresh == \
