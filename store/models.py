@@ -11,6 +11,9 @@ class UserOrderData(models.Model):
     phone = models.CharField(max_length=15, null=True)
     postalCode = models.CharField(max_length=6, null=True)
 
+    def __str__(self):
+        return f'{self.user} {self.email}({self.id})'
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile", null=True)
@@ -77,6 +80,8 @@ class CartProduct(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     copy_count = models.IntegerField(default=0)
+    copyPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    copyDiscountPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 
     def __str__(self):
         return f'{self.user} {self.product}'
@@ -116,6 +121,7 @@ class UserProductRelation(models.Model):
 class Cart(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     products = models.ManyToManyField(CartProduct)
+    totalCount = models.IntegerField(null=True)
 
     def __str__(self):
         return f'{self.owner}({self.owner_id})'

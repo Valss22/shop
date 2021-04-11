@@ -25,14 +25,33 @@ class CartProductsSerializer(ModelSerializer):
         depth = 1
 
     def get_copy_price(self, instance):
-        return CartProduct.objects.get(user=instance.user, product=instance.product).copy_count * \
-               Product.objects.get(id=instance.product.id).price
+        cp = CartProduct.objects.get(
+            user=instance.user,
+            product=instance.product).copy_count * \
+               Product.objects.get(
+                   id=instance.product.id
+               ).price
+        CartProduct.objects.filter(
+            user=instance.user,
+            product=instance.product).update(
+            copyPrice=cp
+        )
+        return cp
 
     def get_copyDiscountPrice(self, instance):
         discountPrice = Product.objects.get(id=instance.product.id).discountPrice
         if discountPrice is None:
             return None
-        return CartProduct.objects.get(user=instance.user, product=instance.product).copy_count * discountPrice
+        cd = CartProduct.objects.get(
+            user=instance.user,
+            product=instance.product
+        ).copy_count * discountPrice
+        CartProduct.objects.filter(
+            user=instance.user,
+            product=instance.product).update(
+            copyDiscountPrice=cd
+        )
+        return cd
 
 
 class ProductRelationSerializer(ModelSerializer):
@@ -46,14 +65,20 @@ class ProductRelationSerializer(ModelSerializer):
 
     def get_rating(self, instance):
         avg = 0
-        for i in list(UserProductRelation.objects.filter(product=instance.product)):
+        for i in list(UserProductRelation.objects.filter(
+                product=instance.product)
+        ):
             if type(i.rate) == int:
                 avg += i.rate
-        avg /= len(UserProductRelation.objects.filter(product=instance.product))
+        avg /= len(UserProductRelation.objects.filter(
+            product=instance.product)
+        )
         return avg
 
     def get_reviewersCount(self, instance):
-        return UserProductRelation.objects.filter(product=instance.product, ).count()
+        return UserProductRelation.objects.filter(
+            product=instance.product,
+        ).count()
 
 
 class CommentsSerializer(ModelSerializer):
@@ -68,10 +93,13 @@ class CommentsSerializer(ModelSerializer):
         depth = 1
 
     def get_likeCount(self, instance):
-        return FeedbackRelation.objects.filter(comment_id=instance.id, like=True).count()
+        return FeedbackRelation.objects.filter(
+            comment_id=instance.id, like=True).count()
 
     def get_dislikeCount(self, instance):
-        return FeedbackRelation.objects.filter(comment_id=instance.id, dislike=True).count()
+        return FeedbackRelation.objects.filter(
+            comment_id=instance.id, dislike=True
+        ).count()
 
     def get_isLiked(self, instance):
         try:
@@ -79,9 +107,11 @@ class CommentsSerializer(ModelSerializer):
             access = parse_id_token(access)
             currentUser = User.objects.get(email=access['email'])
             try:
-                FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id)
+                FeedbackRelation.objects.get(user=currentUser,
+                                             comment_id=instance.id)
 
-                if FeedbackRelation.objects.get(user=currentUser, comment_id=instance.id).like:
+                if FeedbackRelation.objects.get(user=currentUser,
+                                                comment_id=instance.id).like:
                     return True
                 return False
             except:
@@ -147,6 +177,7 @@ class CartSerializer(ModelSerializer):
         tc = 0
         for i in list(CartProduct.objects.filter(user=instance.owner)):
             tc += i.copy_count
+        Cart.objects.filter(owner=instance.owner).update(totalCount=tc)
         return tc
 
     def get_total_price(self, instacne):

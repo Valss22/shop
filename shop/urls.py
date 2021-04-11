@@ -14,16 +14,13 @@ router.register(r'product/cart/delete', CartObjView)
 router.register(r'cart', CartViewSet)
 router.register(r'discount', DiscountProductViewSet)
 router.register(r'profile', UserProfileViewSet)
-#router.register(r'profile/form', UserProfileFormView)
-
-# router.register(r'feedback/form', FeedbackFormView)
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
                   # path to djoser end points
                   path('auth/', include('djoser.urls')),
                   path('auth/', include('djoser.urls.jwt')),
-                  # path to google token
+                  #path to google token
                   path('user/googlelogin/', GoogleView.as_view()),
                   path('user/refresh/', RefreshTokenView.as_view()),
                   path('user/logout/', LogoutView.as_view()),
@@ -34,6 +31,7 @@ urlpatterns = [
                   # path('cart/', CartViewSet.as_view()),
                   path('product/cart/deleteCart/<int:pk>/', CartDeleteView.as_view()),
                   path('profile/form/', UserProfileFormView.as_view()),
+                  path('order/', MakeOrderView.as_view()),
 
                   # path to our account's app endpoints
                   # path('api/accounts/', include('accounts.urls'))
