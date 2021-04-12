@@ -358,8 +358,11 @@ class MakeOrderView(APIView):
         totalPrice = 0
         totalDiscountPrice = 0
         totalCount = Cart.objects.get(owner=currentUser).totalCount
-        orderData = UserOrderData.objects.get(user=currentUser)
-        orderData = model_to_dict(orderData)
+        try:
+            orderData = UserOrderData.objects.get(user=currentUser)
+            orderData = model_to_dict(orderData)
+        except:
+            orderData = None
         orderData.pop('id')
         orderData.pop('user')
 
