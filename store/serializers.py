@@ -178,7 +178,7 @@ class CartSerializer(ModelSerializer):
         tc = 0
         for i in list(CartProduct.objects.filter(user=instance.owner)):
             tc += i.copy_count
-        Cart.objects.filter(owner=instance.owner).update(totalCount=tc)
+        #Cart.objects.filter(owner=instance.owner).update(totalCount=tc)
         return tc
 
     def get_total_price(self, instacne):
