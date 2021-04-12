@@ -357,7 +357,7 @@ class MakeOrderView(APIView):
         currentUser = User.objects.get(email=access['email'])
         totalPrice = 0
         totalDiscountPrice = 0
-        totalCount = Cart.objects.get(owner=currentUser).totalCount
+        totalCount = 0
         try:
             orderData = UserOrderData.objects.get(user=currentUser)
             orderData = model_to_dict(orderData)
@@ -369,6 +369,7 @@ class MakeOrderView(APIView):
         for i in CartProduct.objects.filter(user=currentUser):
             if i.product_id in request.data['id']:
                 totalPrice += i.copyPrice
+                totalCount += i.copy_count
                 if i.copyDiscountPrice is None:
                     totalDiscountPrice = None
                     continue
