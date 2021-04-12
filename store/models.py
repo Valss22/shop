@@ -121,7 +121,7 @@ class UserProductRelation(models.Model):
 class Cart(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     products = models.ManyToManyField(CartProduct)
-    totalCount = models.IntegerField(null=True)
+    #totalCount = models.IntegerField(null=True)
 
     def __str__(self):
         return f'{self.owner}({self.owner_id})'
