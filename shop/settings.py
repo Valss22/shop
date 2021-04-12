@@ -183,7 +183,7 @@ db_from_env = dj_database_url.config()
 DATABASES['default'].update(db_from_env)
 
 django_heroku.settings(locals())
-
+#
 # INTERNAL_IPS = [
 #     '127.0.0.1',
 # ]

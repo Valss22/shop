@@ -132,6 +132,7 @@ class CartViewSet(ModelViewSet):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
         queryset = self.queryset.filter(owner_id=User.objects.get(email=access['email']).id)
+
         return queryset
 
 
@@ -305,6 +306,13 @@ class UserProfileViewSet(ReadOnlyModelViewSet):
     queryset = UserOrderData.objects.all()
     serializer_class = UserOrderDateSerializer
     permission_classes = [IsAuth]
+
+    def get_queryset(self):
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+        queryset = self.queryset.filter(user=User.objects.get(email=access['email']))
+
+        return queryset
 
 
 class UserProfileFormView(APIView):

@@ -21,16 +21,17 @@ class CartProductsSerializer(ModelSerializer):
 
     class Meta:
         model = CartProduct
-        exclude = ('user',)
+
+        exclude = ('user', 'copyPrice',)
         depth = 1
 
     def get_copy_price(self, instance):
         cp = CartProduct.objects.get(
             user=instance.user,
             product=instance.product).copy_count * \
-               Product.objects.get(
-                   id=instance.product.id
-               ).price
+             Product.objects.get(
+                 id=instance.product.id
+             ).price
         CartProduct.objects.filter(
             user=instance.user,
             product=instance.product).update(
@@ -70,6 +71,7 @@ class ProductRelationSerializer(ModelSerializer):
         ):
             if type(i.rate) == int:
                 avg += i.rate
+
         avg /= len(UserProductRelation.objects.filter(
             product=instance.product)
         )
@@ -109,7 +111,6 @@ class CommentsSerializer(ModelSerializer):
             try:
                 FeedbackRelation.objects.get(user=currentUser,
                                              comment_id=instance.id)
-
                 if FeedbackRelation.objects.get(user=currentUser,
                                                 comment_id=instance.id).like:
                     return True
