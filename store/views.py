@@ -361,10 +361,10 @@ class MakeOrderView(APIView):
         try:
             orderData = UserOrderData.objects.get(user=currentUser)
             orderData = model_to_dict(orderData)
+            orderData.pop('id')
+            orderData.pop('user')
         except:
             orderData = None
-        orderData.pop('id')
-        orderData.pop('user')
 
         for i in CartProduct.objects.filter(user=currentUser):
             if i.product_id in request.data['id']:
