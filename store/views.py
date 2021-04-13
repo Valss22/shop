@@ -303,15 +303,15 @@ class FeedbackRateCommentView(APIView):
 
 
 class UserProfileViewSet(ReadOnlyModelViewSet):
-    queryset = UserOrderData.objects.all()
-    serializer_class = UserOrderDateSerializer
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
     permission_classes = [IsAuth]
 
     def get_queryset(self):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
         queryset = self.queryset.filter(user=User.objects.get(email=access['email']))
-
+        print(queryset)
         return queryset
 
 
@@ -329,7 +329,7 @@ class UserProfileFormView(APIView):
             access = self.request.headers['Authorization'].split(' ')[1]
             access = parse_id_token(access)
             currentUser = User.objects.get(email=access['email'])
-            orderData = UserOrderData.objects
+            orderData = UserProfile.objects
             name = request.data['name']
             email = request.data['email']
             phone = request.data['phone']
@@ -358,16 +358,71 @@ class MakeOrderView(APIView):
         totalPrice = 0
         totalDiscountPrice = 0
         totalCount = 0
+        idData = request.data['id']
+
+        if request.data['confirm'] == 'true':
+            idData = [i.product_id for i in
+                      CartProduct.objects.filter(user=currentUser)
+                      if i.product_id not in idData]
+
+            totalCount = 0
+            totalPrice = 0
+
+            for i in request.data['id']:
+                cpObj = CartProduct.objects.get(user=currentUser, product_id=i)
+
+                copyCount = cpObj.copy_count
+
+                if cpObj.copyDiscountPrice is None:
+
+                    copyPrice = cpObj.copyPrice
+                else:
+                    copyPrice = cpObj.copyDiscountPrice
+
+                CopyProduct.objects.create(user=currentUser, product_id=i,
+                                           copyCount=copyCount, copyPrice=copyPrice)
+
+                totalCount += cpObj.copy_count
+
+                if cpObj.copyDiscountPrice is None:
+                    totalPrice += cpObj.copyPrice
+                else:
+                    totalPrice += cpObj.copyDiscountPrice
+
+            opObj = OrderProduct.objects.create(user=currentUser, totalCount=totalCount,
+                                                totalPrice=totalPrice, status=1)
+            opObj_id = opObj.id
+            opObj.save()
+
+            for i in request.data['id']:
+                OrderProduct.objects.get(user=currentUser, id=opObj_id).products.add(
+                    CopyProduct.objects.filter(user=currentUser, product_id=i).last()
+                )
+
+            UserProfile.objects.get(user=currentUser).orderItems.add(
+                OrderProduct.objects.get(user=currentUser, id=opObj_id)
+            )
+
+            for i in request.data['id']:
+                CartProduct.objects.filter(
+                    user=currentUser, product_id=i).delete()
+
         try:
-            orderData = UserOrderData.objects.get(user=currentUser)
-            orderData = model_to_dict(orderData)
-            orderData.pop('id')
-            orderData.pop('user')
+            orderData = UserProfile.objects.get(user=currentUser)
+            orderData = {
+                'name': orderData.name,
+                'email': orderData.email,
+                'phone': orderData.phone,
+                'postalCode': orderData.postalCode
+            }
+            # orderData = model_to_dict(orderData)
+            # orderData.pop('id')
+            # orderData.pop('user')
         except:
             orderData = None
 
         for i in CartProduct.objects.filter(user=currentUser):
-            if i.product_id in request.data['id']:
+            if i.product_id in idData:
                 totalPrice += i.copyPrice
                 totalCount += i.copy_count
                 if i.copyDiscountPrice is None:
@@ -382,6 +437,9 @@ class MakeOrderView(APIView):
             'totalDiscountPrice': totalDiscountPrice,
             'orderData': orderData,
         }
+        if request.data['confirm'] == 'true':
+            responce.data.pop('orderData')
+
         return responce
 
 
@@ -441,12 +499,12 @@ class GoogleView(APIView):
                         refresh=refresh
                     )
                 try:
-                    UserProfile.objects.get(
+                    UserPhotoProfile.objects.get(
                         user=User.objects.get(
                             email=parse_id_token(
                                 token['id_token'])['email'])
                     )
-                    UserProfile.objects.create(
+                    UserPhotoProfile.objects.create(
                         user=User.objects.get(
                             email=parse_id_token(
                                 token['id_token'])['email']),
@@ -479,7 +537,7 @@ class GoogleView(APIView):
                         username=parse_id_token(token['id_token'])['name']),
                     refresh=refresh
                 )
-                UserProfile.objects.create(
+                UserPhotoProfile.objects.create(
                     user=User.objects.get(
                         username=parse_id_token(token['id_token'])['name']),
                     picture=parse_id_token(token['id_token'])['picture']
@@ -544,7 +602,7 @@ class RefreshTokenView(APIView):
                     'access': access,
                     'email': User.objects.get(email=refreshEmail).email,
                     'name': User.objects.get(email=refreshEmail).username,
-                    'picture': UserProfile.objects.get(
+                    'picture': UserPhotoProfile.objects.get(
                         user=User.objects.get(email=refreshEmail)).picture,
                 }
                 return response

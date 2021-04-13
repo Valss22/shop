@@ -21,7 +21,6 @@ class CartProductsSerializer(ModelSerializer):
 
     class Meta:
         model = CartProduct
-
         exclude = ('user', 'copyPrice',)
         depth = 1
 
@@ -178,7 +177,7 @@ class CartSerializer(ModelSerializer):
         tc = 0
         for i in list(CartProduct.objects.filter(user=instance.owner)):
             tc += i.copy_count
-        #Cart.objects.filter(owner=instance.owner).update(totalCount=tc)
+        # Cart.objects.filter(owner=instance.owner).update(totalCount=tc)
         return tc
 
     def get_total_price(self, instacne):
@@ -215,15 +214,39 @@ class FeedbackRelationSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class UserOrderDateSerializer(ModelSerializer):
+class ProductSerializer(ModelSerializer):
     class Meta:
-        model = UserOrderData
-        exclude = ('id', 'user')
+        model = Product
+        fields = ('id', 'name', 'author', 'image')
+
+
+class CopyProductSerializer(ModelSerializer):
+    product = ProductSerializer(read_only=True)
+
+    class Meta:
+        model = CopyProduct
+        exclude = ('user',)
+        depth = 1
+
+
+class OrderProductSerializer(ModelSerializer):
+    products = CopyProductSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = OrderProduct
+        exclude = ('user',)
+        depth = 2
 
 
 class UserProfileSerializer(ModelSerializer):
-    orderData = UserOrderDateSerializer(many=True, read_only=True)
+    orderItems = OrderProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = UserProfile
+        exclude = ('id', 'user',)
+
+
+class UserPhotoProfileSerializer(ModelSerializer):
+    class Meta:
+        model = UserPhotoProfile
         exclude = ('user',)

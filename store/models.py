@@ -4,26 +4,6 @@ from django.db import models
 from store.validators import *
 
 
-class UserOrderData(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=50, null=True)
-    email = models.EmailField(null=True)
-    phone = models.CharField(max_length=15, null=True)
-    postalCode = models.CharField(max_length=6, null=True)
-
-    def __str__(self):
-        return f'{self.user} {self.email}({self.id})'
-
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile", null=True)
-    picture = models.TextField(max_length=500, null=True)
-    orderData = models.ManyToManyField(UserOrderData)
-
-    def __str__(self):
-        return f'id({self.id}) {self.user}'
-
-
 class UserRefreshToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='refresh', null=True)
     refresh = models.TextField(null=True)
@@ -100,8 +80,6 @@ class UserProductRelation(models.Model):
     rate = models.PositiveSmallIntegerField(choices=RATE_CHOICES, null=True, blank=True)
     is_rated = models.BooleanField(default=False)
 
-    # info = models.ForeignKey(CartProduct, null=True, on_delete=models.SET_NULL)
-
     def save(self, *args, **kwargs):
         from store.services import set_rating
 
@@ -121,7 +99,53 @@ class UserProductRelation(models.Model):
 class Cart(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     products = models.ManyToManyField(CartProduct)
-    #totalCount = models.IntegerField(null=True)
 
     def __str__(self):
         return f'{self.owner}({self.owner_id})'
+
+
+class UserPhotoProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile", null=True)
+    picture = models.TextField(max_length=500, null=True)
+
+    # orderData = models.ManyToManyField(UserOrderData)
+
+    def __str__(self):
+        return f'id({self.id}) {self.user}'
+
+
+class CopyProduct(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    copyCount = models.IntegerField(null=True)
+    copyPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+
+
+class OrderProduct(models.Model):
+    STATUS_CHOICES = (
+        (1, 'Order processing'),
+        (2, 'Order is formed'),
+        (3, 'Order for delivery'),
+        (4, 'Order was sent to the post office')
+    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    products = models.ManyToManyField(CopyProduct)
+    totalCount = models.IntegerField(null=True)
+    totalPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True)
+    date = models.DateField(default=datetime.now())
+    status = models.IntegerField(choices=STATUS_CHOICES, null=True)
+
+    def __str__(self):
+        return f'{self.user} ({self.id})'
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    name = models.CharField(max_length=50, null=True)
+    email = models.EmailField(null=True)
+    phone = models.CharField(max_length=15, null=True)
+    postalCode = models.CharField(max_length=6, null=True)
+    orderItems = models.ManyToManyField(OrderProduct)
+
+    def __str__(self):
+        return f'{self.user} {self.email}({self.id})'
