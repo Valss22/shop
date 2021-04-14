@@ -146,7 +146,7 @@ class CartDeleteView(APIView):
 
         if len(list(CartProduct.objects.filter(user=currentUser))) > 0:
             CartProduct.objects.filter(user=currentUser).delete()
-            Cart.objects.filter(owner=currentUser).delete()
+            #Cart.objects.filter(owner=currentUser).delete()
             return Response({"message": "Cart deleted success"},
                             status.HTTP_200_OK)
         else:
