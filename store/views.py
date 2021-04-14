@@ -146,7 +146,7 @@ class CartDeleteView(APIView):
 
         if len(list(CartProduct.objects.filter(user=currentUser))) > 0:
             CartProduct.objects.filter(user=currentUser).delete()
-            #Cart.objects.filter(owner=currentUser).delete()
+            Cart.objects.filter(owner=currentUser).delete()
             return Response({"message": "Cart deleted success"},
                             status.HTTP_200_OK)
         else:
@@ -375,6 +375,8 @@ class MakeOrderView(APIView):
             idData = [i.product_id for i in
                       CartProduct.objects.filter(user=currentUser)
                       if i.product_id not in idData]
+            if idData:
+                Cart.objects.filter(owner=currentUser).delete()
 
             totalCount = 0
             totalPrice = 0
