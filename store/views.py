@@ -452,7 +452,8 @@ class MakeOrderView(APIView):
             'orderData': orderData,
         }
         if request.data['confirm']:
-            responce.data.pop('orderData')
+            return Response({'message': 'order successfully'},
+                            status=status.HTTP_200_OK)
 
         return responce
 
