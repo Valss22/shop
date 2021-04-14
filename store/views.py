@@ -375,7 +375,7 @@ class MakeOrderView(APIView):
             idData = [i.product_id for i in
                       CartProduct.objects.filter(user=currentUser)
                       if i.product_id not in idData]
-            if idData:
+            if not idData:
                 Cart.objects.filter(owner=currentUser).delete()
 
             totalCount = 0
