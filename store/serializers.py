@@ -245,7 +245,14 @@ class OrderProductSerializer(ModelSerializer):
         depth = 2
 
 
+class OrderDataSerializer(ModelSerializer):
+    class Meta:
+        model = OrderData
+        exclude = ('user', 'id')
+
+
 class UserProfileSerializer(ModelSerializer):
+    orderData = OrderDataSerializer(read_only=True)
     orderItems = OrderProductSerializer(many=True, read_only=True)
 
     class Meta:

@@ -335,20 +335,25 @@ class UserProfileFormView(APIView):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
         currentUser = User.objects.get(email=access['email'])
-        orderData = UserProfile.objects
         name = request.data['name']
         email = request.data['email']
         phone = request.data['phone']
         postalCode = request.data['postalCode']
         try:
-            orderData.get(user=currentUser)
-            orderData.filter(user=currentUser) \
+            OrderData.objects.get(user=currentUser)
+            OrderData.objects.filter(user=currentUser) \
                 .update(name=name, email=email,
                         phone=phone, postalCode=postalCode)
         except:
-            orderData.create(user=currentUser, name=name,
-                             email=email, phone=phone,
-                             postalCode=postalCode)
+            OrderData.objects.create(user=currentUser, name=name,
+                                     email=email, phone=phone,
+                                     postalCode=postalCode)
+        try:
+            UserProfile.objects.get(user=currentUser)
+            UserProfile.objects.filter(user=currentUser). \
+                update(orderData=OrderData.objects.get(user=currentUser))
+        except:
+            UserProfile.objects.create(user=currentUser, orderData=OrderData.objects.get(user=currentUser))
 
         return Response({'message': 'success'}, status.HTTP_200_OK)
         # return Response({'message': 'validation error'}, status.HTTP_400_BAD_REQUEST)

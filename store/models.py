@@ -139,13 +139,18 @@ class OrderProduct(models.Model):
         return f'{self.user} ({self.id})'
 
 
-class UserProfile(models.Model):
+class OrderData(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=50, null=True)
     email = models.EmailField(null=True)
     phone = models.CharField(max_length=15, null=True)
     postalCode = models.CharField(max_length=6, null=True)
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    orderData = models.OneToOneField(OrderData, on_delete=models.SET_NULL, null=True)
     orderItems = models.ManyToManyField(OrderProduct)
 
     def __str__(self):
-        return f'{self.user} {self.email}({self.id})'
+        return f'{self.user} ({self.id})'
