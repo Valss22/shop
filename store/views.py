@@ -371,7 +371,7 @@ class MakeOrderView(APIView):
         totalCount = 0
         idData = request.data['id']
 
-        if request.data['confirm'] == 'true':
+        if request.data['confirm']:
             idData = [i.product_id for i in
                       CartProduct.objects.filter(user=currentUser)
                       if i.product_id not in idData]
@@ -451,7 +451,7 @@ class MakeOrderView(APIView):
             'totalDiscountPrice': totalDiscountPrice,
             'orderData': orderData,
         }
-        if request.data['confirm'] == 'true':
+        if request.data['confirm']:
             responce.data.pop('orderData')
 
         return responce
