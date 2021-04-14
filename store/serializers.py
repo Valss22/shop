@@ -15,9 +15,16 @@ class CategorySerializer(ModelSerializer):
         fields = '__all__'
 
 
+class ProductForCartProductSerializer(ModelSerializer):
+    class Meta:
+        model = Product
+        exclude = ('description', 'category', 'reviewers', 'comments')
+
+
 class CartProductsSerializer(ModelSerializer):
     copy_price = serializers.SerializerMethodField()
     copyDiscountPrice = serializers.SerializerMethodField()
+    product = ProductForCartProductSerializer(read_only=True)
 
     class Meta:
         model = CartProduct
@@ -171,7 +178,7 @@ class CartSerializer(ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = '__all__'
+        exclude = ('owner',)
 
     def get_totalCount(self, instance):
         tc = 0
@@ -214,14 +221,14 @@ class FeedbackRelationSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class ProductSerializer(ModelSerializer):
+class ProductForCopyProductSerializer(ModelSerializer):
     class Meta:
         model = Product
         fields = ('id', 'name', 'author', 'image')
 
 
 class CopyProductSerializer(ModelSerializer):
-    product = ProductSerializer(read_only=True)
+    product = ProductForCopyProductSerializer(read_only=True)
 
     class Meta:
         model = CopyProduct

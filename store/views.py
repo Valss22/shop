@@ -147,9 +147,11 @@ class CartDeleteView(APIView):
         if len(list(CartProduct.objects.filter(user=currentUser))) > 0:
             CartProduct.objects.filter(user=currentUser).delete()
             Cart.objects.filter(owner=currentUser).delete()
-            return Response({"message": "Cart deleted success"}, status.HTTP_200_OK)
+            return Response({"message": "Cart deleted success"},
+                            status.HTTP_200_OK)
         else:
-            return Response({"message": "Cart is empty"}, status.HTTP_204_NO_CONTENT)
+            return Response({"message": "Cart is empty"},
+                            status.HTTP_204_NO_CONTENT)
 
 
 class CartObjView(UpdateModelMixin, GenericViewSet, ):
@@ -164,8 +166,11 @@ class CartObjView(UpdateModelMixin, GenericViewSet, ):
         currentUser = User.objects.get(email=access['email'])
         currentProduct = Product.objects.get(id=self.kwargs['book'])
 
-        if CartProduct.objects.filter(user=currentUser, product=currentProduct).first().copy_count == 1:
-            obj = CartProduct.objects.get(user=currentUser, product_id=self.kwargs['book'])
+        if CartProduct.objects.filter(user=currentUser,
+                                      product=currentProduct) \
+                .first().copy_count == 1:
+            obj = CartProduct.objects.get(user=currentUser,
+                                          product_id=self.kwargs['book'])
             return obj
         else:
             CartProduct.objects.filter(
@@ -299,7 +304,8 @@ class FeedbackRateCommentView(APIView):
                 }
                 return responce
         else:
-            return Response({'message': 'invalid request body'}, status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'invalid request body'},
+                            status.HTTP_400_BAD_REQUEST)
 
 
 class UserProfileViewSet(ReadOnlyModelViewSet):
@@ -310,8 +316,8 @@ class UserProfileViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
-        queryset = self.queryset.filter(user=User.objects.get(email=access['email']))
-        print(queryset)
+        queryset = self.queryset.filter(user=User.objects.get(
+            email=access['email']))
         return queryset
 
 
@@ -319,33 +325,33 @@ class UserProfileFormView(APIView):
     permission_classes = [IsAuth]
 
     def put(self, request):
-        fields = ['name', 'email', 'phone', 'postalCode']
-        dataFields = []
+        # fields = ['name', 'email', 'phone', 'postalCode']
+        # dataFields = []
+        #
+        # for key, value in request.data.items():
+        #     dataFields.append(key)
 
-        for key, value in request.data.items():
-            dataFields.append(key)
+        # if dataFields.remove('orderItems') == fields:
+        access = self.request.headers['Authorization'].split(' ')[1]
+        access = parse_id_token(access)
+        currentUser = User.objects.get(email=access['email'])
+        orderData = UserProfile.objects
+        name = request.data['name']
+        email = request.data['email']
+        phone = request.data['phone']
+        postalCode = request.data['postalCode']
+        try:
+            orderData.get(user=currentUser)
+            orderData.filter(user=currentUser) \
+                .update(name=name, email=email,
+                        phone=phone, postalCode=postalCode)
+        except:
+            orderData.create(user=currentUser, name=name,
+                             email=email, phone=phone,
+                             postalCode=postalCode)
 
-        if dataFields == fields:
-            access = self.request.headers['Authorization'].split(' ')[1]
-            access = parse_id_token(access)
-            currentUser = User.objects.get(email=access['email'])
-            orderData = UserProfile.objects
-            name = request.data['name']
-            email = request.data['email']
-            phone = request.data['phone']
-            postalCode = request.data['postalCode']
-            try:
-                orderData.get(user=currentUser)
-                orderData.filter(user=currentUser) \
-                    .update(name=name, email=email,
-                            phone=phone, postalCode=postalCode)
-            except:
-                orderData.create(user=currentUser, name=name,
-                                 email=email, phone=phone,
-                                 postalCode=postalCode)
-
-            return Response({'message': 'success'}, status.HTTP_200_OK)
-        return Response({'message': 'validation error'}, status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'success'}, status.HTTP_200_OK)
+        # return Response({'message': 'validation error'}, status.HTTP_400_BAD_REQUEST)
 
 
 class MakeOrderView(APIView):
@@ -369,44 +375,45 @@ class MakeOrderView(APIView):
             totalPrice = 0
 
             for i in request.data['id']:
-                cpObj = CartProduct.objects.get(user=currentUser, product_id=i)
-
+                cpObj = CartProduct.objects.get(user=currentUser,
+                                                product_id=i)
                 copyCount = cpObj.copy_count
 
                 if cpObj.copyDiscountPrice is None:
-
                     copyPrice = cpObj.copyPrice
                 else:
                     copyPrice = cpObj.copyDiscountPrice
-
                 CopyProduct.objects.create(user=currentUser, product_id=i,
-                                           copyCount=copyCount, copyPrice=copyPrice)
+                                           copyCount=copyCount,
+                                           copyPrice=copyPrice)
 
                 totalCount += cpObj.copy_count
-
                 if cpObj.copyDiscountPrice is None:
                     totalPrice += cpObj.copyPrice
                 else:
                     totalPrice += cpObj.copyDiscountPrice
-
-            opObj = OrderProduct.objects.create(user=currentUser, totalCount=totalCount,
-                                                totalPrice=totalPrice, status=1)
+            opObj = OrderProduct.objects.create(user=currentUser,
+                                                totalCount=totalCount,
+                                                totalPrice=totalPrice,
+                                                status=1)
             opObj_id = opObj.id
             opObj.save()
-
             for i in request.data['id']:
-                OrderProduct.objects.get(user=currentUser, id=opObj_id).products.add(
-                    CopyProduct.objects.filter(user=currentUser, product_id=i).last()
+                OrderProduct.objects.get(user=currentUser,
+                                         id=opObj_id).products.add(
+                    CopyProduct.objects.filter(
+                        user=currentUser, product_id=i
+                    ).last()
                 )
-
-            UserProfile.objects.get(user=currentUser).orderItems.add(
-                OrderProduct.objects.get(user=currentUser, id=opObj_id)
+            UserProfile.objects.get(user=currentUser). \
+                orderItems.add(
+                OrderProduct.objects.get(
+                    user=currentUser,
+                    id=opObj_id)
             )
-
             for i in request.data['id']:
                 CartProduct.objects.filter(
                     user=currentUser, product_id=i).delete()
-
         try:
             orderData = UserProfile.objects.get(user=currentUser)
             orderData = {
