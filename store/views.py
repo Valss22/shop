@@ -420,7 +420,7 @@ class MakeOrderView(APIView):
                 CartProduct.objects.filter(
                     user=currentUser, product_id=i).delete()
         try:
-            orderData = UserProfile.objects.get(user=currentUser)
+            orderData = OrderProduct.objects.get(user=currentUser)
             orderData = {
                 'name': orderData.name,
                 'email': orderData.email,
