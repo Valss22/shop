@@ -11,7 +11,7 @@ router.register(r'product', ProductViewSet)
 router.register(r'product/rate', UserProductRateView)
 router.register(r'product/cart', UserProductCartView)
 router.register(r'product/cart/delete', CartObjView)
-router.register(r'cart', CartViewSet)
+router.register(r'cart', CartViewSet,basename='MyModel')
 router.register(r'discount', DiscountProductViewSet)
 router.register(r'profile', UserProfileViewSet)
 

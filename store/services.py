@@ -1,5 +1,8 @@
+import jwt
 from rest_framework.pagination import PageNumberPagination
 import django_filters
+
+from shop import settings
 from store.models import *
 from store.serializers import *
 from django.db.models import Avg
@@ -56,6 +59,22 @@ def set_like(current_user, pk: int, case: bool) -> Response:
     if not case:
         responce.data['isDisliked'] = False
     return responce
+
+
+class LoginTokens:
+
+    def __init__(self, payload_access, payload_refresh, token):
+        self.access = jwt.encode(payload_access, settings.ACCESS_SECRET_KEY, algorithm='HS256')
+        self.refresh = jwt.encode(payload_refresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
+        self.refresh = str(self.refresh)[2:-1]
+        self.responce = Response()
+        self.response.set_cookie(key='refresh', value=self.refresh, httponly=True)
+        self.response.data = {
+            'access': self.access,
+            'email': parse_id_token(token['id_token'])['email'],
+            'name': parse_id_token(token['id_token'])['name'],
+            'picture': parse_id_token(token['id_token'])['picture'],
+        }
 
 
 class LargeResultsSetPagination(PageNumberPagination):
