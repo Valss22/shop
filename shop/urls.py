@@ -11,7 +11,7 @@ router.register(r'product', ProductViewSet)
 router.register(r'product/rate', UserProductRateView)
 router.register(r'product/cart', UserProductCartView)
 router.register(r'product/cart/delete', CartObjView)
-router.register(r'cart', CartViewSet,basename='MyModel')
+router.register(r'cart', CartViewSet, basename='MyModel')
 router.register(r'discount', DiscountProductViewSet)
 router.register(r'profile', UserProfileViewSet)
 
@@ -20,7 +20,7 @@ urlpatterns = [
                   # path to djoser end points
                   path('auth/', include('djoser.urls')),
                   path('auth/', include('djoser.urls.jwt')),
-                  #path to google token
+                  # path to google token
                   path('user/googlelogin/', GoogleView.as_view()),
                   path('user/refresh/', RefreshTokenView.as_view()),
                   path('user/logout/', LogoutView.as_view()),
