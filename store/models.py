@@ -123,17 +123,17 @@ class CopyProduct(models.Model):
 
 class OrderProduct(models.Model):
     STATUS_CHOICES = (
-        (1, 'Order processing'),
-        (2, 'Order is formed'),
-        (3, 'Order for delivery'),
-        (4, 'Order was sent to the post office')
+        ('Order processing', 'Order processing'),
+        ('Order processing', 'Order is formed'),
+        ('Order processing', 'Order for delivery'),
+        ('Order processing', 'Order was sent to the post office')
     )
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     products = models.ManyToManyField(CopyProduct)
     totalCount = models.IntegerField(null=True)
     totalPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     date = models.DateField(default=datetime.now())
-    status = models.IntegerField(choices=STATUS_CHOICES, null=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, null=True)
 
     def __str__(self):
         return f'{self.user} ({self.id})'

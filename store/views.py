@@ -123,7 +123,7 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
         return obj
 
 
-class CartViewSet(ModelViewSet):  # TODO: remove nesting in the list
+class CartViewSet(ModelViewSet):
     # queryset = Cart.objects.all()
     permission_classes = [IsAuth]
 
@@ -352,9 +352,12 @@ class UserProfileFormView(APIView):
         try:
             UserProfile.objects.get(user=currentUser)
             UserProfile.objects.filter(user=currentUser). \
-                update(orderData=OrderData.objects.get(user=currentUser))
+                update(orderData=OrderData.objects
+                       .get(user=currentUser))
         except:
-            UserProfile.objects.create(user=currentUser, orderData=OrderData.objects.get(user=currentUser))
+            UserProfile.objects.create(user=currentUser,
+                                       orderData=OrderData.
+                                       objects.get(user=currentUser))
 
         return Response({'message': 'success'}, status.HTTP_200_OK)
 
@@ -449,8 +452,8 @@ class MakeOrderView(APIView):
                     continue
                 totalDiscountPrice += i.copyDiscountPrice
 
-        responce = Response()
-        responce.data = {
+        response = Response()
+        response.data = {
             'totalCount': totalCount,
             'totalPrice': totalPrice,
             'totalDiscountPrice': totalDiscountPrice,
@@ -460,7 +463,7 @@ class MakeOrderView(APIView):
             return Response({'message': 'order successfully'},
                             status=status.HTTP_200_OK)
 
-        return responce
+        return response
 
 
 class GoogleView(APIView):
@@ -534,8 +537,8 @@ class GoogleView(APIView):
                     )
                 except:
                     pass
-                return tokens.responce
-                # return response
+                return tokens.response
+
             except User.DoesNotExist:
                 User.objects.create_user(parse_id_token(token['id_token'])['name'],
                                          parse_id_token(token['id_token'])['email'])
@@ -566,7 +569,7 @@ class GoogleView(APIView):
                         username=parse_id_token(token['id_token'])['name']),
                     picture=parse_id_token(token['id_token'])['picture']
                 )
-                return tokens.responce
+                return tokens.response
         except ValueError as err:
             print(err)
             content = {'message': 'Invalid token'}

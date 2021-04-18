@@ -67,17 +67,14 @@ class LoginTokens:
         self.access = jwt.encode(payload_access, settings.ACCESS_SECRET_KEY, algorithm='HS256')
         self.refresh = jwt.encode(payload_refresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
         self.refresh = str(self.refresh)[2:-1]
-        self.responce = Response()
-        self.responce.set_cookie(key='refresh', value=self.refresh, httponly=True)
-        self.responce.data = {
+        self.response = Response()
+        self.response.set_cookie(key='refresh', value=self.refresh, httponly=True)
+        self.response.data = {
             'access': self.access,
             'email': parse_id_token(token['id_token'])['email'],
             'name': parse_id_token(token['id_token'])['name'],
             'picture': parse_id_token(token['id_token'])['picture'],
         }
-
-#def set_responce_login(refresh, token):
-
 
 
 class LargeResultsSetPagination(PageNumberPagination):
