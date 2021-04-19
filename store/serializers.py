@@ -248,6 +248,7 @@ class OrderProductSerializer(ModelSerializer):
 
 
 class OrderDataSerializer(ModelSerializer):
+
     class Meta:
         model = OrderData
         exclude = ('user', 'id')

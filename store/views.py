@@ -139,7 +139,10 @@ class CartViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
-        queryset = Cart.objects.get(owner=User.objects.get(email=access['email']))
+        try:
+            queryset = Cart.objects.get(owner=User.objects.get(email=access['email']))
+        except:
+            return Response([], status=status.HTTP_204_NO_CONTENT)
         serializer = CartSerializer(queryset, )
         return Response(serializer.data)
 
@@ -330,6 +333,7 @@ class UserProfileViewSet(ReadOnlyModelViewSet):
                 email=access['email'])
         )
         serializer = UserProfileSerializer(queryset, )
+
         return Response(serializer.data)
 
 
@@ -424,7 +428,7 @@ class MakeOrderView(APIView):
                     'copyCount': copyCount,
                     'copyPrice': str(copyPrice),
                 }
-)
+                )
             opObj = OrderProduct.objects.create(user=currentUser,
                                                 totalCount=totalCount,
                                                 totalPrice=totalPrice,
@@ -432,18 +436,18 @@ class MakeOrderView(APIView):
             opObj_id = opObj.id
             opObj.save()
 
-            for i in request.data['id']:
-                # OrderProduct.objects.get(user=currentUser,
-                #                          id=opObj_id).products.add(
-                #     CopyProduct.objects.filter(
-                #         user=currentUser, product_id=i
-                #     ).last()
-                # )
-                # CopyProduct.objects.filter(user=currentUser, product_id=i).update(
-                #     orderProduct=OrderProduct.objects.filter(
-                #         user=currentUser).last())
+            # for i in request.data['id']:
+            # OrderProduct.objects.get(user=currentUser,
+            #                          id=opObj_id).products.add(
+            #     CopyProduct.objects.filter(
+            #         user=currentUser, product_id=i
+            #     ).last()
+            # )
+            # CopyProduct.objects.filter(user=currentUser, product_id=i).update(
+            #     orderProduct=OrderProduct.objects.filter(
+            #         user=currentUser).last())
 
-                OrderProduct.objects.filter(user=currentUser).update(products=arrJson)
+            OrderProduct.objects.filter(user=currentUser, id=opObj_id).update(products=arrJson)
 
             UserProfile.objects.get(user=currentUser). \
                 orderItems.add(
