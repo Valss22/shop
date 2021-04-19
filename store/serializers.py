@@ -148,6 +148,8 @@ class ProductSerializerAll(ModelSerializer):
     my_rate = serializers.IntegerField(max_value=5, read_only=True)
     in_cart = serializers.BooleanField(read_only=True, )
 
+    # products = serializers.ModelSerializer
+
     class Meta:
         model = Product
         exclude = ('comments', 'description', 'reviewers',)
@@ -227,17 +229,17 @@ class ProductForCopyProductSerializer(ModelSerializer):
         fields = ('id', 'name', 'author', 'image')
 
 
-class CopyProductSerializer(ModelSerializer):
-    product = ProductForCopyProductSerializer(read_only=True)
-
-    class Meta:
-        model = CopyProduct
-        exclude = ('user',)
-        depth = 1
+# class CopyProductSerializer(ModelSerializer):
+#     product = ProductForCopyProductSerializer(read_only=True)
+#
+#     class Meta:
+#         model = CopyProduct
+#         exclude = ('user',)
+#         depth = 1
 
 
 class OrderProductSerializer(ModelSerializer):
-    products = CopyProductSerializer(many=True, read_only=True)
+    # products = CopyProductSerializer(many=True, read_only=True)
 
     class Meta:
         model = OrderProduct

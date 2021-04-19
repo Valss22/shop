@@ -317,16 +317,20 @@ class FeedbackRateCommentView(APIView):
 
 
 class UserProfileViewSet(ReadOnlyModelViewSet):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
+    # queryset = UserProfile.objects.all()
+
+    # serializer_class = UserProfileSerializer
     permission_classes = [IsAuth]
 
-    def get_queryset(self):
+    def list(self, request, *args, **kwargs):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
-        queryset = self.queryset.filter(user=User.objects.get(
-            email=access['email']))
-        return queryset
+        queryset = UserProfile.objects.get(
+            user=User.objects.get(
+                email=access['email'])
+        )
+        serializer = UserProfileSerializer(queryset, )
+        return Response(serializer.data)
 
 
 class UserProfileFormView(APIView):
@@ -379,6 +383,8 @@ class MakeOrderView(APIView):
                       CartProduct.objects.filter(user=currentUser)
                       if i.product_id not in idData]
 
+            arrJson = []
+
             if not idData:
                 Cart.objects.filter(owner=currentUser).delete()
 
@@ -394,10 +400,10 @@ class MakeOrderView(APIView):
                     copyPrice = cpObj.copyPrice
                 else:
                     copyPrice = cpObj.copyDiscountPrice
-                CopyProduct.objects.create(user=currentUser,
-                                           product_id=i,
-                                           copyCount=copyCount,
-                                           copyPrice=copyPrice)
+                # CopyProduct.objects.create(user=currentUser,
+                #                            product_id=i,
+                #                            copyCount=copyCount,
+                #                            copyPrice=copyPrice)
 
                 totalCount += cpObj.copy_count
 
@@ -406,20 +412,39 @@ class MakeOrderView(APIView):
                 else:
                     totalPrice += cpObj.copyDiscountPrice
 
+                name = Product.objects.get(id=i).name
+                author = Product.objects.get(id=i).author
+                image = Product.objects.get(id=i).image
+
+                arrJson.append({
+                    'id': i,
+                    'name': name,
+                    'author': author,
+                    'image': image,
+                    'copyCount': copyCount,
+                    'copyPrice': str(copyPrice),
+                }
+)
             opObj = OrderProduct.objects.create(user=currentUser,
                                                 totalCount=totalCount,
                                                 totalPrice=totalPrice,
-                                                status=1)
+                                                status='Order processing')
             opObj_id = opObj.id
             opObj.save()
 
             for i in request.data['id']:
-                OrderProduct.objects.get(user=currentUser,
-                                         id=opObj_id).products.add(
-                    CopyProduct.objects.filter(
-                        user=currentUser, product_id=i
-                    ).last()
-                )
+                # OrderProduct.objects.get(user=currentUser,
+                #                          id=opObj_id).products.add(
+                #     CopyProduct.objects.filter(
+                #         user=currentUser, product_id=i
+                #     ).last()
+                # )
+                # CopyProduct.objects.filter(user=currentUser, product_id=i).update(
+                #     orderProduct=OrderProduct.objects.filter(
+                #         user=currentUser).last())
+
+                OrderProduct.objects.filter(user=currentUser).update(products=arrJson)
+
             UserProfile.objects.get(user=currentUser). \
                 orderItems.add(
                 OrderProduct.objects.get(

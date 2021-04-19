@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from store.validators import *
 
@@ -114,29 +115,24 @@ class UserPhotoProfile(models.Model):
         return f'id({self.id}) {self.user}'
 
 
-class CopyProduct(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
-    copyCount = models.IntegerField(null=True)
-    copyPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True)
-
-
 class OrderProduct(models.Model):
-    STATUS_CHOICES = (
-        ('Order processing', 'Order processing'),
-        ('Order processing', 'Order is formed'),
-        ('Order processing', 'Order for delivery'),
-        ('Order processing', 'Order was sent to the post office')
-    )
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    products = models.ManyToManyField(CopyProduct)
+    products = ArrayField(models.JSONField(), blank=True, null=True)
     totalCount = models.IntegerField(null=True)
     totalPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True)
     date = models.DateField(default=datetime.now())
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, null=True)
+    status = models.CharField(max_length=50, null=True)
 
     def __str__(self):
         return f'{self.user} ({self.id})'
+
+
+# class CopyProduct(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+#     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+#     orderProduct = models.ForeignKey(OrderProduct, on_delete=models.CASCADE, null=True, related_name='OrderProducts')
+#     copyCount = models.IntegerField(null=True)
+#     copyPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 
 
 class OrderData(models.Model):
