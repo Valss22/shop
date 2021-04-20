@@ -499,20 +499,20 @@ class GoogleView(APIView):
                                 token['id_token'])['email']),
                         refresh=tokens.refresh
                     )
-                try:
-                    UserPhotoProfile.objects.get(
-                        user=User.objects.get(
-                            email=parse_id_token(
-                                token['id_token'])['email'])
-                    )
-                    UserPhotoProfile.objects.create(
-                        user=User.objects.get(
-                            email=parse_id_token(
-                                token['id_token'])['email']),
-                        picture=parse_id_token(token['id_token'])['picture']
-                    )
-                except UserPhotoProfile.DoesNotExist:
-                    pass
+                # try:
+                #     UserPhotoProfile.objects.get(
+                #         user=User.objects.get(
+                #             email=parse_id_token(
+                #                 token['id_token'])['email'])
+                #     )
+                #     UserPhotoProfile.objects.filter(
+                #         user=User.objects.get(
+                #             email=parse_id_token(
+                #                 token['id_token'])['email']),
+                #         picture=parse_id_token(token['id_token'])['picture']
+                #     )
+                # except UserPhotoProfile.DoesNotExist:
+                #     pass
                 return tokens.response
             except User.DoesNotExist:
                 User.objects.create_user(parse_id_token(token['id_token'])['name'],
