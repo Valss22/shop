@@ -1,17 +1,16 @@
 import time
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
+from google.auth.transport import requests
+from rest_framework import status
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.mixins import UpdateModelMixin
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet, GenericViewSet, ModelViewSet
 from store.permissions import *
 from google.oauth2 import id_token
-from google.auth.transport import requests
-from rest_framework.response import Response
 import random
 from store.services import *
-from django.forms.models import model_to_dict
 
 
 class ProductViewSet(ReadOnlyModelViewSet):
@@ -124,17 +123,7 @@ class UserProductCartView(UpdateModelMixin, GenericViewSet, ):
 
 
 class CartViewSet(ModelViewSet):
-    # queryset = Cart.objects.all()
     permission_classes = [IsAuth]
-
-    # serializer_class = CartSerializer
-
-    # def get_queryset(self):
-    #     access = self.request.headers['Authorization'].split(' ')[1]
-    #     access = parse_id_token(access)
-    #     queryset = self.queryset.filter(owner=User.objects.get(email=access['email']))
-    #
-    #     return queryset
 
     def list(self, request, *args, **kwargs):
         access = self.request.headers['Authorization'].split(' ')[1]
@@ -267,14 +256,11 @@ class FeedbackRateCommentView(APIView):
         responce = Response()
 
         if request.data['data'] == 'like':
-
             if FeedbackRelation.objects.get(user=current_user, comment_id=pk).like:
                 return set_like(current_user, pk, True)
             else:
                 return set_like(current_user, pk, False)
-
         elif request.data['data'] == 'dislike':
-
             if FeedbackRelation.objects.get(
                     user=current_user,
                     comment_id=pk).dislike:
@@ -320,9 +306,6 @@ class FeedbackRateCommentView(APIView):
 
 
 class UserProfileViewSet(ReadOnlyModelViewSet):
-    # queryset = UserProfile.objects.all()
-
-    # serializer_class = UserProfileSerializer
     permission_classes = [IsAuth]
 
     def list(self, request, *args, **kwargs):
@@ -333,7 +316,6 @@ class UserProfileViewSet(ReadOnlyModelViewSet):
                 email=access['email'])
         )
         serializer = UserProfileSerializer(queryset, )
-
         return Response(serializer.data)
 
 
@@ -353,7 +335,7 @@ class UserProfileFormView(APIView):
             OrderData.objects.filter(user=currentUser) \
                 .update(name=name, email=email,
                         phone=phone, postalCode=postalCode)
-        except:
+        except OrderData.DoesNotExist:
             OrderData.objects.create(user=currentUser, name=name,
                                      email=email, phone=phone,
                                      postalCode=postalCode)
@@ -362,11 +344,10 @@ class UserProfileFormView(APIView):
             UserProfile.objects.filter(user=currentUser). \
                 update(orderData=OrderData.objects
                        .get(user=currentUser))
-        except:
+        except UserProfile.DoesNotExist:
             UserProfile.objects.create(user=currentUser,
                                        orderData=OrderData.
                                        objects.get(user=currentUser))
-
         return Response({'message': 'success'}, status.HTTP_200_OK)
 
 
@@ -404,10 +385,6 @@ class MakeOrderView(APIView):
                     copyPrice = cpObj.copyPrice
                 else:
                     copyPrice = cpObj.copyDiscountPrice
-                # CopyProduct.objects.create(user=currentUser,
-                #                            product_id=i,
-                #                            copyCount=copyCount,
-                #                            copyPrice=copyPrice)
 
                 totalCount += cpObj.copy_count
 
@@ -436,18 +413,8 @@ class MakeOrderView(APIView):
             opObj_id = opObj.id
             opObj.save()
 
-            # for i in request.data['id']:
-            # OrderProduct.objects.get(user=currentUser,
-            #                          id=opObj_id).products.add(
-            #     CopyProduct.objects.filter(
-            #         user=currentUser, product_id=i
-            #     ).last()
-            # )
-            # CopyProduct.objects.filter(user=currentUser, product_id=i).update(
-            #     orderProduct=OrderProduct.objects.filter(
-            #         user=currentUser).last())
-
-            OrderProduct.objects.filter(user=currentUser, id=opObj_id).update(products=arrJson)
+            OrderProduct.objects.filter(user=currentUser, id=opObj_id) \
+                .update(products=arrJson)
 
             UserProfile.objects.get(user=currentUser). \
                 orderItems.add(
@@ -466,10 +433,7 @@ class MakeOrderView(APIView):
                 'phone': orderData.phone,
                 'postalCode': orderData.postalCode
             }
-            # orderData = model_to_dict(orderData)
-            # orderData.pop('id')
-            # orderData.pop('user')
-        except:
+        except OrderData.DoesNotExist:
             orderData = None
 
         for i in CartProduct.objects.filter(user=currentUser):
@@ -491,7 +455,6 @@ class MakeOrderView(APIView):
         if request.data['confirm']:
             return Response({'message': 'order successfully'},
                             status=status.HTTP_200_OK)
-
         return response
 
 
@@ -517,23 +480,7 @@ class GoogleView(APIView):
             }
             try:
                 User.objects.get(email=parse_id_token(token['id_token'])['email'])
-
-                # access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY,
-                #                     algorithm='HS256')
-                # refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY,
-                #                      algorithm='HS256')
-                # refresh = str(refresh)[2:-1]
-                #
-                # response = Response()
-                # response.set_cookie(key='refresh', value=refresh, httponly=True)
-                # response.data = {
-                #     'access': access,
-                #     'email': parse_id_token(token['id_token'])['email'],
-                #     'name': parse_id_token(token['id_token'])['name'],
-                #     'picture': parse_id_token(token['id_token'])['picture'],
-                # }
                 tokens = LoginTokens(payloadAccess, payloadRefresh, token)
-
                 try:
                     UserRefreshToken.objects.get(
                         user=User.objects.get(
@@ -545,7 +492,7 @@ class GoogleView(APIView):
                                 token['id_token'])['email'])).update(
                         refresh=tokens.refresh
                     )
-                except:
+                except UserRefreshToken.DoesNotExist:
                     UserRefreshToken.objects.create(
                         user=User.objects.get(
                             email=parse_id_token(
@@ -564,28 +511,12 @@ class GoogleView(APIView):
                                 token['id_token'])['email']),
                         picture=parse_id_token(token['id_token'])['picture']
                     )
-                except:
+                except UserPhotoProfile.DoesNotExist:
                     pass
                 return tokens.response
-
             except User.DoesNotExist:
                 User.objects.create_user(parse_id_token(token['id_token'])['name'],
                                          parse_id_token(token['id_token'])['email'])
-
-                # access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY,
-                #                     algorithm='HS256')
-                # refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY,
-                #                      algorithm='HS256')
-                # refresh = str(refresh)[2:-1]
-                #
-                # response = Response()
-                # response.set_cookie(key='refresh', value=refresh, httponly=True)
-                # response.data = {
-                #     'access': access,
-                #     'email': parse_id_token(token['id_token'])['email'],
-                #     'name': parse_id_token(token['id_token'])['name'],
-                #     'picture': parse_id_token(token['id_token'])['picture'],
-                # }
                 tokens = LoginTokens(payloadAccess, payloadRefresh, token)
 
                 UserRefreshToken.objects.create(
@@ -610,13 +541,11 @@ class RefreshTokenView(APIView):
     def post(self, request):
 
         refreshEmail = parse_id_token(request.COOKIES['refresh'])['email']
-
         try:
             data = {'token': request.COOKIES['refresh']}
         except:
             return Response({'message': 'Auth failed1'},
                             status=status.HTTP_401_UNAUTHORIZED)
-
         payloadAccess = {
             'email': parse_id_token(data['token'])['email'],
             'exp': time.time() + 15000
@@ -625,14 +554,12 @@ class RefreshTokenView(APIView):
             'email': parse_id_token(data['token'])['email'],
             'exp': time.time() + 40000
         }
-
         try:
             jwt.decode(data['token'], settings.REFRESH_SECRET_KEY,
                        algorithms='HS256')
-        except:
+        except jwt.ExpiredSignatureError:
             return Response({'message': 'Auth failed2'},
                             status=status.HTTP_401_UNAUTHORIZED)
-
         try:
             UserRefreshToken.objects.get(
                 user=User.objects.get(
@@ -665,7 +592,7 @@ class RefreshTokenView(APIView):
             else:
                 return Response({'message': 'Auth failed3'},
                                 status=status.HTTP_401_UNAUTHORIZED)
-        except:
+        except UserRefreshToken.DoesNotExist:
             return Response({'message': 'Auth failed4'},
                             status=status.HTTP_401_UNAUTHORIZED)
 

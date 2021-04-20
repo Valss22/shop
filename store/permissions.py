@@ -14,5 +14,5 @@ class IsAuth(BasePermission):
             access = request.headers['Authorization'].split(' ')[1]
             jwt.decode(access, settings.ACCESS_SECRET_KEY, algorithms='HS256')
             return True
-        except:
+        except jwt.ExpiredSignatureError:
             return False

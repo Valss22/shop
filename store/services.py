@@ -1,12 +1,10 @@
 import jwt
 from rest_framework.pagination import PageNumberPagination
 import django_filters
-
+from rest_framework.response import Response
 from shop import settings
-from store.models import *
 from store.serializers import *
 from django.db.models import Avg
-
 from store.models import UserProductRelation
 
 
@@ -62,10 +60,11 @@ def set_like(current_user, pk: int, case: bool) -> Response:
 
 
 class LoginTokens:
-
     def __init__(self, payload_access, payload_refresh, token):
-        self.access = jwt.encode(payload_access, settings.ACCESS_SECRET_KEY, algorithm='HS256')
-        self.refresh = jwt.encode(payload_refresh, settings.REFRESH_SECRET_KEY, algorithm='HS256')
+        self.access = jwt.encode(payload_access,
+                                 settings.ACCESS_SECRET_KEY, algorithm='HS256')
+        self.refresh = jwt.encode(payload_refresh,
+                                  settings.REFRESH_SECRET_KEY, algorithm='HS256')
         self.refresh = str(self.refresh)[2:-1]
         self.response = Response()
         self.response.set_cookie(key='refresh', value=self.refresh, httponly=True)

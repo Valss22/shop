@@ -109,8 +109,6 @@ class UserPhotoProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile", null=True)
     picture = models.TextField(max_length=500, null=True)
 
-    # orderData = models.ManyToManyField(UserOrderData)
-
     def __str__(self):
         return f'id({self.id}) {self.user}'
 
@@ -125,14 +123,6 @@ class OrderProduct(models.Model):
 
     def __str__(self):
         return f'{self.user} ({self.id})'
-
-
-# class CopyProduct(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-#     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
-#     orderProduct = models.ForeignKey(OrderProduct, on_delete=models.CASCADE, null=True, related_name='OrderProducts')
-#     copyCount = models.IntegerField(null=True)
-#     copyPrice = models.DecimalField(max_digits=5, decimal_places=2, null=True)
 
 
 class OrderData(models.Model):
