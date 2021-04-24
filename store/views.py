@@ -311,10 +311,14 @@ class UserProfileViewSet(ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
-        queryset = UserProfile.objects.get(
-            user=User.objects.get(
-                email=access['email'])
-        )
+        try:
+            queryset = UserProfile.objects.get(
+                user=User.objects.get(
+                    email=access['email'])
+            )
+        except UserProfile.DoesNotExist:
+            return Response({"orderData": None, "orderItems": None},
+                            status=status.HTTP_204_NO_CONTENT)
         serializer = UserProfileSerializer(queryset, )
         return Response(serializer.data)
 
@@ -322,7 +326,7 @@ class UserProfileViewSet(ReadOnlyModelViewSet):
 class UserProfileFormView(APIView):
     permission_classes = [IsAuth]
 
-    def put(self, request):  # TODO: validate this request
+    def put(self, request):
         access = self.request.headers['Authorization'].split(' ')[1]
         access = parse_id_token(access)
         currentUser = User.objects.get(email=access['email'])
@@ -499,20 +503,6 @@ class GoogleView(APIView):
                                 token['id_token'])['email']),
                         refresh=tokens.refresh
                     )
-                # try:
-                #     UserPhotoProfile.objects.get(
-                #         user=User.objects.get(
-                #             email=parse_id_token(
-                #                 token['id_token'])['email'])
-                #     )
-                #     UserPhotoProfile.objects.filter(
-                #         user=User.objects.get(
-                #             email=parse_id_token(
-                #                 token['id_token'])['email']),
-                #         picture=parse_id_token(token['id_token'])['picture']
-                #     )
-                # except UserPhotoProfile.DoesNotExist:
-                #     pass
                 return tokens.response
             except User.DoesNotExist:
                 User.objects.create_user(parse_id_token(token['id_token'])['name'],

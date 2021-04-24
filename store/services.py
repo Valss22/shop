@@ -8,7 +8,7 @@ from django.db.models import Avg
 from store.models import UserProductRelation
 
 
-def set_rating(product):
+def set_rating(product: Product):
     rating = UserProductRelation.objects.filter(
         product=product).aggregate(
         rating=Avg('rate')).get('rating')
@@ -17,7 +17,7 @@ def set_rating(product):
     return rating
 
 
-def set_like(current_user, pk: int, case: bool) -> Response:
+def set_like(current_user: User, pk: int, case: bool) -> Response:
     FeedbackRelation.objects.filter(
         user=current_user,
         comment_id=pk).update(
