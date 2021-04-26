@@ -19,9 +19,10 @@ ACCESS_SECRET_KEY = 'v(qngismmzm7qhgy-2@%*u6!p4ua=4_dox-r5o9amza2@$9+&w'
 REFRESH_SECRET_KEY = 'zrl-kx%q#!&#$2k-bex@t*rp_jbbvs3w4(ao(sa330zrruwlyx'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['http://localhost:3000']
+ALLOWED_HOSTS = ['http://localhost:3000',
+                 'https://deger4beger.github.io/bookShop']
 
 # Application definition
 
@@ -41,7 +42,8 @@ INSTALLED_APPS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "https://deger4beger.github.io/bookShop"
 ]
 
 # REST_FRAMEWORK = {

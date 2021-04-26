@@ -132,6 +132,9 @@ class OrderData(models.Model):
     phone = models.CharField(max_length=15, null=True)
     postalCode = models.CharField(max_length=6, null=True)
 
+    def __str__(self):
+        return f'{self.user} ({self.id})'
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
