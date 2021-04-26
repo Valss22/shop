@@ -22,7 +22,7 @@ REFRESH_SECRET_KEY = 'zrl-kx%q#!&#$2k-bex@t*rp_jbbvs3w4(ao(sa330zrruwlyx'
 DEBUG = True
 
 ALLOWED_HOSTS = ['http://localhost:3000',
-                 'https://deger4beger.github.io/bookShop']
+                 'https://deger4beger.github.io']
 
 # Application definition
 
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "https://deger4beger.github.io/bookShop"
+    "https://deger4beger.github.io"
 ]
 
 # REST_FRAMEWORK = {

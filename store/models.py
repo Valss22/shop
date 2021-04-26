@@ -82,7 +82,7 @@ class UserProductRelation(models.Model):
     is_rated = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        from store.services import set_rating
+        from store.services.product import set_rating
 
         creating = not self.pk
         old_rating = self.rate
