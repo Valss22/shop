@@ -1,11 +1,7 @@
 import jwt
-from django.contrib.auth.models import User
-from django.db.models import F
 from rest_framework.permissions import BasePermission
 
 from shop import settings
-from store.decoding import parse_id_token
-from store.models import *
 
 
 class IsAuth(BasePermission):

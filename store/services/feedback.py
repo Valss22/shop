@@ -7,22 +7,22 @@ from rest_framework.response import Response
 def add_feedback(self, request, pk):
     access = self.request.headers['Authorization'].split(' ')[1]
     access = parse_id_token(access)
-    currentUser = User.objects.get(email=access['email'])
+    current_user = User.objects.get(email=access['email'])
 
     Feedback.objects.create(
-        user=currentUser,
+        user=current_user,
         username=User.objects.get(email=access['email']).username,
         comment=request.data['comment']
     )
-    currentFeedback = Feedback.objects.filter(user=currentUser).last()
-    Product.objects.get(id=pk).comments.add(currentFeedback)
+    current_feedback = Feedback.objects.filter(user=current_user).last()
+    Product.objects.get(id=pk).comments.add(current_feedback)
 
     responce = Response()
     responce.data = {
-        'id': currentFeedback.id,
-        'comment': currentFeedback.comment,
-        'username': currentFeedback.username,
-        'date': currentFeedback.date
+        'id': current_feedback.id,
+        'comment': current_feedback.comment,
+        'username': current_feedback.username,
+        'date': current_feedback.date
     }
     return responce
 

@@ -1,10 +1,5 @@
 from django.contrib import admin
 
-# Register your models here.
-from django.contrib.admin import ModelAdmin
-from rest_framework.authtoken.models import Token
-
-from store.models import *
 
 from django.apps import apps
 

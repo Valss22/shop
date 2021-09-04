@@ -1,8 +1,5 @@
 import base64
 import json
-import time
-
-from shop import settings
 
 
 def parse_id_token(token: str) -> dict:

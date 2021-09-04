@@ -19,7 +19,7 @@ class ProductForCartProductSerializer(ModelSerializer):
 
 class CartProductsSerializer(ModelSerializer):
     copy_price = serializers.SerializerMethodField()
-    copyDiscountPrice = serializers.SerializerMethodField()
+    copy_discount_price = serializers.SerializerMethodField()
     product = ProductForCartProductSerializer(read_only=True)
 
     class Meta:
@@ -41,16 +41,16 @@ class CartProductsSerializer(ModelSerializer):
         )
         return cp
 
-    def get_copyDiscountPrice(self, instance):
-        discountPrice = Product.objects.get(
+    def get_copy_discount_price(self, instance):
+        discount_price = Product.objects.get(
             id=instance.product.id).discountPrice
-        if discountPrice is None:
+        if discount_price is None:
             return None
 
         cd = CartProduct.objects.get(
             user=instance.user,
             product=instance.product
-        ).copy_count * discountPrice
+        ).copy_count * discount_price
 
         CartProduct.objects.filter(
             user=instance.user,
@@ -62,7 +62,7 @@ class CartProductsSerializer(ModelSerializer):
 
 class ProductRelationSerializer(ModelSerializer):
     rating = serializers.SerializerMethodField()
-    reviewersCount = serializers.SerializerMethodField()
+    reviewers_count = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProductRelation
@@ -81,43 +81,43 @@ class ProductRelationSerializer(ModelSerializer):
         )
         return avg
 
-    def get_reviewersCount(self, instance):
+    def get_reviewers_count(self, instance):
         return UserProductRelation.objects.filter(
             product=instance.product,
         ).count()
 
 
 class CommentsSerializer(ModelSerializer):
-    likeCount = serializers.SerializerMethodField()
-    dislikeCount = serializers.SerializerMethodField()
-    isLiked = serializers.SerializerMethodField()
-    isDisliked = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
+    dislike_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()
+    is_disliked = serializers.SerializerMethodField()
 
     class Meta:
         model = Feedback
         exclude = ('user',)
         depth = 1
 
-    def get_likeCount(self, instance):
+    def get_like_count(self, instance):
         return FeedbackRelation.objects.filter(
             comment_id=instance.id, like=True).count()
 
-    def get_dislikeCount(self, instance):
+    def get_dislike_count(self, instance):
         return FeedbackRelation.objects.filter(
             comment_id=instance.id, dislike=True
         ).count()
 
-    def get_isLiked(self, instance):
+    def get_is_liked(self, instance):
         try:
             access = self.context.get('request', None) \
                 .headers['Authorization'].split(' ')[1]
             access = parse_id_token(access)
             currentUser = User.objects.get(email=access['email'])
             try:
-                fbObj = FeedbackRelation.objects \
+                fb_obj = FeedbackRelation.objects \
                     .get(user=currentUser,
                          comment_id=instance.id)
-                if fbObj.like:
+                if fb_obj.like:
                     return True
                 return False
             except FeedbackRelation.DoesNotExist:
@@ -125,17 +125,17 @@ class CommentsSerializer(ModelSerializer):
         except:
             return False
 
-    def get_isDisliked(self, instance):
+    def get_is_disliked(self, instance):
         try:
             access = self.context.get('request', None) \
                 .headers['Authorization'].split(' ')[1]
             access = parse_id_token(access)
-            currentUser = User.objects.get(email=access['email'])
+            current_user = User.objects.get(email=access['email'])
             try:
-                fbObj = FeedbackRelation.objects\
-                    .get(user=currentUser,
+                fb_obj = FeedbackRelation.objects\
+                    .get(user=current_user,
                          comment_id=instance.id)
-                if fbObj.dislike:
+                if fb_obj.dislike:
                     return True
                 return False
             except FeedbackRelation.DoesNotExist:
@@ -172,14 +172,14 @@ class ProductSerializerRetrieve(ModelSerializer):
 class CartSerializer(ModelSerializer):
     products = CartProductsSerializer(read_only=True, many=True)
     total_price = serializers.SerializerMethodField()
-    totalDiscountPrice = serializers.SerializerMethodField()
-    totalCount = serializers.SerializerMethodField()
+    total_discount_price = serializers.SerializerMethodField()
+    total_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
         exclude = ('owner',)
 
-    def get_totalCount(self, instance):
+    def get_total_count(self, instance):
         tc = 0
         for i in list(CartProduct.objects.filter(user=instance.owner)):
             tc += i.copy_count
@@ -191,7 +191,7 @@ class CartSerializer(ModelSerializer):
             tp += i.copy_count * i.product.price
         return tp
 
-    def get_totalDiscountPrice(self, instance):
+    def get_total_discount_price(self, instance):
         tdp = 0
         count = 0
         arr = list(CartProduct.objects.filter(user=instance.owner))

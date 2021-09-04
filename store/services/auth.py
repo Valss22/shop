@@ -37,17 +37,17 @@ def login(request, id_token):
         )
         if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
             raise ValueError('Wrong issuer.')
-        payloadAccess = {
+        payload_access = {
             'email': parse_id_token(token['id_token'])['email'],
             'exp': time.time() + 15000
         }
-        payloadRefresh = {
+        payload_refresh = {
             'email': parse_id_token(token['id_token'])['email'],
             'exp': time.time() + 40000
         }
         try:
             User.objects.get(email=parse_id_token(token['id_token'])['email'])
-            tokens = LoginTokens(payloadAccess, payloadRefresh, token)
+            tokens = LoginTokens(payload_access, payload_refresh, token)
             try:
                 UserRefreshToken.objects.get(
                     user=User.objects.get(
@@ -70,7 +70,7 @@ def login(request, id_token):
         except User.DoesNotExist:
             User.objects.create_user(parse_id_token(token['id_token'])['name'],
                                      parse_id_token(token['id_token'])['email'])
-            tokens = LoginTokens(payloadAccess, payloadRefresh, token)
+            tokens = LoginTokens(payload_access, payload_refresh, token)
 
             UserRefreshToken.objects.create(
                 user=User.objects.get(
@@ -90,17 +90,17 @@ def login(request, id_token):
 
 
 def refresh_token(request):
-    refreshEmail = parse_id_token(request.COOKIES['refresh'])['email']
+    refresh_email = parse_id_token(request.COOKIES['refresh'])['email']
     try:
         data = {'token': request.COOKIES['refresh']}
-    except:
+    except ValueError:
         return Response({'message': 'Auth failed1'},
                         status=status.HTTP_401_UNAUTHORIZED)
-    payloadAccess = {
+    payload_access = {
         'email': parse_id_token(data['token'])['email'],
         'exp': time.time() + 15000
     }
-    payloadRefresh = {
+    payload_refresh = {
         'email': parse_id_token(data['token'])['email'],
         'exp': time.time() + 40000
     }
@@ -113,30 +113,30 @@ def refresh_token(request):
     try:
         UserRefreshToken.objects.get(
             user=User.objects.get(
-                email=refreshEmail)
+                email=refresh_email)
         )
         if UserRefreshToken.objects.get(
                 user=User.objects.get(
-                    email=refreshEmail)).refresh == \
+                    email=refresh_email)).refresh == \
                 request.COOKIES['refresh']:
 
-            access = jwt.encode(payloadAccess, settings.ACCESS_SECRET_KEY)
-            refresh = jwt.encode(payloadRefresh, settings.REFRESH_SECRET_KEY)
+            access = jwt.encode(payload_access, settings.ACCESS_SECRET_KEY)
+            refresh = jwt.encode(payload_refresh, settings.REFRESH_SECRET_KEY)
             refresh = str(refresh)[2:-1]
 
             UserRefreshToken.objects.filter(
                 user=User.objects.get(
-                    email=refreshEmail)).update(
+                    email=refresh_email)).update(
                 refresh=refresh
             )
             response = Response()
             response.set_cookie(key='refresh', value=refresh, httponly=True)
             response.data = {
                 'access': access,
-                'email': User.objects.get(email=refreshEmail).email,
-                'name': User.objects.get(email=refreshEmail).username,
+                'email': User.objects.get(email=refresh_email).email,
+                'name': User.objects.get(email=refresh_email).username,
                 'picture': UserPhotoProfile.objects.get(
-                    user=User.objects.get(email=refreshEmail)).picture,
+                    user=User.objects.get(email=refresh_email)).picture,
             }
             return response
         else:

@@ -83,7 +83,7 @@ class CartObjView(UpdateModelMixin, GenericViewSet, ):
     permission_classes = [IsAuth, ]
     lookup_field = 'book'
 
-    def get_object(self, ):
+    def get_object(self):
         return decrement_obj_from_cart(self)
 
 

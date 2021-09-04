@@ -7,76 +7,78 @@ from rest_framework.response import Response
 def make_order(self, request):
     access = self.request.headers['Authorization'].split(' ')[1]
     access = parse_id_token(access)
-    currentUser = User.objects.get(email=access['email'])
-    totalPrice = 0
-    totalDiscountPrice = 0
-    totalCount = 0
-    idData = request.data['id']
+    current_user = User.objects.get(email=access['email'])
+    total_price = 0
+    total_discount_price = 0
+    total_count = 0
+    id_data = request.data['id']
 
     if request.data['confirm']:
-        idData = [i.product_id for i in
-                  CartProduct.objects.filter(user=currentUser)
-                  if i.product_id not in idData]
+        id_data = [i.product_id for i in
+                   CartProduct.objects.filter(user=current_user)
+                   if i.product_id not in id_data]
 
-        arrJson = []
+        arr_json = []
 
-        if not idData:
-            Cart.objects.filter(owner=currentUser).delete()
+        if not id_data:
+            Cart.objects.filter(owner=current_user).delete()
 
-        totalCount = 0
-        totalPrice = 0
+        total_count = 0
+        total_price = 0
 
         for i in request.data['id']:
-            cpObj = CartProduct.objects.get(user=currentUser,
-                                            product_id=i)
-            copyCount = cpObj.copy_count
+            cp_obj = CartProduct.objects.get(
+                user=current_user, product_id=i
+            )
+            copy_count = cp_obj.copy_count
 
-            if cpObj.copyDiscountPrice is None:
-                copyPrice = cpObj.copyPrice
+            if cp_obj.copy_discount_price is None:
+                copy_price = cp_obj.copyPrice
             else:
-                copyPrice = cpObj.copyDiscountPrice
+                copy_price = cp_obj.copy_discount_price
 
-            totalCount += cpObj.copy_count
+            total_count += cp_obj.copy_count
 
-            if cpObj.copyDiscountPrice is None:
-                totalPrice += cpObj.copyPrice
+            if cp_obj.copy_discount_price is None:
+                total_price += cp_obj.copyPrice
             else:
-                totalPrice += cpObj.copyDiscountPrice
+                total_price += cp_obj.copy_discount_price
 
             name = Product.objects.get(id=i).name
             author = Product.objects.get(id=i).author
             image = Product.objects.get(id=i).image
 
-            arrJson.append({
+            arr_json.append({
                 'id': i,
                 'name': name,
                 'author': author,
                 'image': image,
-                'copyCount': copyCount,
-                'copyPrice': str(copyPrice),
-            }
-            )
-        opObj = OrderProduct.objects.create(user=currentUser,
-                                            totalCount=totalCount,
-                                            totalPrice=totalPrice,
-                                            status='Order processing')
-        opObj_id = opObj.id
-        opObj.save()
+                'copyCount': copy_count,
+                'copyPrice': str(copy_price),
+            })
+        op_obj = OrderProduct.objects.create(
+            user=current_user,
+            totalCount=total_count,
+            totalPrice=total_price,
+            status='Order processing'
+        )
+        op_obj_id = op_obj.id
+        op_obj.save()
 
-        OrderProduct.objects.filter(user=currentUser, id=opObj_id) \
-            .update(products=arrJson)
+        OrderProduct.objects.filter(user=current_user, id=op_obj_id) \
+            .update(products=arr_json)
 
-        UserProfile.objects.get(user=currentUser). \
+        UserProfile.objects.get(user=current_user). \
             orderItems.add(
             OrderProduct.objects.get(
-                user=currentUser,
-                id=opObj_id)
+                user=current_user,
+                id=op_obj_id)
         )
         for i in request.data['id']:
             CartProduct.objects.filter(
-                user=currentUser, product_id=i).delete()
+                user=current_user, product_id=i).delete()
     try:
-        orderData = OrderData.objects.get(user=currentUser)
+        orderData = OrderData.objects.get(user=current_user)
         orderData = {
             'name': orderData.name,
             'email': orderData.email,
@@ -86,20 +88,20 @@ def make_order(self, request):
     except OrderData.DoesNotExist:
         orderData = None
 
-    for i in CartProduct.objects.filter(user=currentUser):
-        if i.product_id in idData:
-            totalPrice += i.copyPrice
-            totalCount += i.copy_count
-            if i.copyDiscountPrice is None:
-                totalDiscountPrice = None
+    for i in CartProduct.objects.filter(user=current_user):
+        if i.product_id in id_data:
+            total_price += i.copyPrice
+            total_count += i.copy_count
+            if i.copy_discount_price is None:
+                total_discount_price = None
                 continue
-            totalDiscountPrice += i.copyDiscountPrice
+            total_discount_price += i.copy_discount_price
 
     response = Response()
     response.data = {
-        'totalCount': totalCount,
-        'totalPrice': totalPrice,
-        'totalDiscountPrice': totalDiscountPrice,
+        'totalCount': total_count,
+        'totalPrice': total_price,
+        'totalDiscountPrice': total_discount_price,
         'orderData': orderData,
     }
     if request.data['confirm']:

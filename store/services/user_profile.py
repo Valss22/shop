@@ -22,27 +22,27 @@ def get_user_profile(self, ):
 def fill_user_profile_form(self, request):
     access = self.request.headers['Authorization'].split(' ')[1]
     access = parse_id_token(access)
-    currentUser = User.objects.get(email=access['email'])
+    current_user = User.objects.get(email=access['email'])
     name = request.data['name']
     email = request.data['email']
     phone = request.data['phone']
-    postalCode = request.data['postalCode']
+    postal_code = request.data['postalCode']
     try:
-        OrderData.objects.get(user=currentUser)
-        OrderData.objects.filter(user=currentUser) \
+        OrderData.objects.get(user=current_user)
+        OrderData.objects.filter(user=current_user) \
             .update(name=name, email=email,
-                    phone=phone, postalCode=postalCode)
+                    phone=phone, postalCode=postal_code)
     except OrderData.DoesNotExist:
-        OrderData.objects.create(user=currentUser, name=name,
+        OrderData.objects.create(user=current_user, name=name,
                                  email=email, phone=phone,
-                                 postalCode=postalCode)
+                                 postalCode=postal_code)
     try:
-        UserProfile.objects.get(user=currentUser)
-        UserProfile.objects.filter(user=currentUser). \
+        UserProfile.objects.get(user=current_user)
+        UserProfile.objects.filter(user=current_user). \
             update(orderData=OrderData.objects
-                   .get(user=currentUser))
+                   .get(user=current_user))
     except UserProfile.DoesNotExist:
-        UserProfile.objects.create(user=currentUser,
+        UserProfile.objects.create(user=current_user,
                                    orderData=OrderData.
-                                   objects.get(user=currentUser))
+                                   objects.get(user=current_user))
     return Response({'message': 'success'}, status.HTTP_200_OK)
