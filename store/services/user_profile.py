@@ -42,7 +42,9 @@ def fill_user_profile_form(self, request):
             update(orderData=OrderData.objects
                    .get(user=current_user))
     except UserProfile.DoesNotExist:
-        UserProfile.objects.create(user=current_user,
-                                   orderData=OrderData.
-                                   objects.get(user=current_user))
+        UserProfile.objects.create(
+            user=current_user,
+            orderData=OrderData.
+            objects.get(user=current_user)
+        )
     return Response({'message': 'success'}, status.HTTP_200_OK)

@@ -16,14 +16,14 @@ def get_cart(self, parse_id_token):
     return Response(serializer.data)
 
 
-def delete_cart(self, ):
+def delete_cart(self):
     access = self.request.headers['Authorization'].split(' ')[1]
     access = parse_id_token(access)
-    currentUser = User.objects.get(email=access['email'])
+    current_user = User.objects.get(email=access['email'])
 
-    if len(list(CartProduct.objects.filter(user=currentUser))) > 0:
-        CartProduct.objects.filter(user=currentUser).delete()
-        Cart.objects.filter(owner=currentUser).delete()
+    if len(list(CartProduct.objects.filter(user=current_user))) > 0:
+        CartProduct.objects.filter(user=current_user).delete()
+        Cart.objects.filter(owner=current_user).delete()
         return Response({"message": "Cart deleted success"},
                         status.HTTP_200_OK)
     else:
@@ -34,49 +34,52 @@ def delete_cart(self, ):
 def decrement_obj_from_cart(self, ):
     access = self.request.headers['Authorization'].split(' ')[1]
     access = parse_id_token(access)
-    currentUser = User.objects.get(email=access['email'])
-    currentProduct = Product.objects.get(id=self.kwargs['book'])
+    current_user = User.objects.get(email=access['email'])
+    current_product = Product.objects.get(id=self.kwargs['book'])
 
-    if CartProduct.objects.filter(user=currentUser,
-                                  product=currentProduct) \
-            .first().copy_count == 1:
-        obj = CartProduct.objects.get(user=currentUser,
-                                      product_id=self.kwargs['book'])
+    if CartProduct.objects.filter(
+            user=current_user,
+            product=current_product
+    ).first().copy_count == 1:
+
+        obj = CartProduct.objects.get(user=current_user,product_id=self.kwargs['book'])
         return obj
+
     else:
         CartProduct.objects.filter(
-            user=currentUser,
-            product=currentProduct).update(
+            user=current_user,
+            product=current_product).update(
             copy_count=F('copy_count') - 1
         )
-        obj = CartProduct.objects.get(user=currentUser, product_id=self.kwargs['book'])
+        obj = CartProduct.objects.get(user=current_user, product_id=self.kwargs['book'])
         return obj
 
 
 def delete_obj_from_cart(self, pk):
     access = self.request.headers['Authorization'].split(' ')[1]
     access = parse_id_token(access)
-    currentUser = User.objects.get(email=access['email'])
-    currentProduct = Product.objects.get(id=pk)
+    current_user = User.objects.get(email=access['email'])
+    current_product = Product.objects.get(id=pk)
 
     try:
         CartProduct.objects.get(
-            user=currentUser,
-            product=currentProduct
+            user=current_user,
+            product=current_product
         )
         CartProduct.objects.filter(
-            user=currentUser,
-            product=currentProduct
+            user=current_user,
+            product=current_product
         ).delete()
 
         inst = CartSerializer()
-        cart = Cart.objects.filter(owner=currentUser).first()
+        cart = Cart.objects.filter(owner=current_user).first()
 
         if CartSerializer.get_totalCount(inst, cart) == 0:
-            Cart.objects.filter(owner=currentUser).delete()
+            Cart.objects.filter(owner=current_user).delete()
 
         return Response({'message': 'book successfully deleted'},
                         status.HTTP_200_OK)
+
     except CartProduct.DoesNotExist:
         return Response({'message': '''book doesn't exists'''},
                         status.HTTP_204_NO_CONTENT)
