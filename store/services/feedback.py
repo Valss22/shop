@@ -40,7 +40,7 @@ def set_like(current_user: User, pk: int, case: bool) -> Response:
             dislike=case
         )
     if case:
-        likeCount = FeedbackRelation.objects.filter(
+        like_count = FeedbackRelation.objects.filter(
             comment_id=pk,
             like=case).count(
         )
@@ -49,7 +49,7 @@ def set_like(current_user: User, pk: int, case: bool) -> Response:
             dislike=case).count(
         )
     else:
-        likeCount = FeedbackRelation.objects.filter(
+        like_count = FeedbackRelation.objects.filter(
             comment_id=pk,
             like=not case).count(
         )
@@ -61,7 +61,7 @@ def set_like(current_user: User, pk: int, case: bool) -> Response:
     responce = Response()
     responce.data = {
         'isLiked': not case,
-        'likeCount': likeCount,
+        'likeCount': like_count,
         'dislikeCount': dislikeCount,
     }
     if not case:
@@ -90,15 +90,15 @@ def rate_feedback(self, request, set_like, pk):
                 comment_id=pk).update(
                 dislike=False
             )
-            likeCount = FeedbackRelation.objects.filter(
+            like_count = FeedbackRelation.objects.filter(
                 comment_id=pk, like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(
+            dislike_count = FeedbackRelation.objects.filter(
                 comment_id=pk, dislike=True).count()
 
             responce.data = {
                 'isDisliked': False,
-                'likeCount': likeCount,
-                'dislikeCount': dislikeCount,
+                'likeCount': like_count,
+                'dislikeCount': dislike_count,
             }
             return responce
         else:
@@ -109,16 +109,16 @@ def rate_feedback(self, request, set_like, pk):
                 user=current_user,
                 comment_id=pk).update(like=False)
 
-            likeCount = FeedbackRelation.objects.filter(
+            like_count = FeedbackRelation.objects.filter(
                 comment_id=pk, like=True).count()
-            dislikeCount = FeedbackRelation.objects.filter(
+            dislike_count = FeedbackRelation.objects.filter(
                 comment_id=pk, dislike=True).count()
 
             responce.data = {
                 'isLiked': False,
                 'isDisliked': True,
-                'likeCount': likeCount,
-                'dislikeCount': dislikeCount,
+                'likeCount': like_count,
+                'dislikeCount': dislike_count,
             }
             return responce
     else:
